@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+
+# virtualenv
+venv/
+
+# Editor
+.vscode/
+
+# Kivy offline packages
+kivi_offline/
+*.whl
+
+# Build/output folders
+build/
+dist/

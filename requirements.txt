@@ -1,0 +1,5 @@
+kivy
+kivymd
+pillow
+kivy_deps.glew
+kivy_deps.sdl2
