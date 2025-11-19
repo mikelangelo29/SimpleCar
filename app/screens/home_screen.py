@@ -13,7 +13,7 @@ class HomeScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # Sfondo elegante grigio chiaro
+        # ---------- SFONDO HOME ----------
         with self.canvas.before:
             Color(0.949, 0.957, 0.969, 1)  # #F2F4F7
             self.bg = Rectangle(pos=self.pos, size=self.size)
@@ -21,85 +21,78 @@ class HomeScreen(MDScreen):
 
         layout = MDBoxLayout(
             orientation="vertical",
-            spacing=dp(20),
+            spacing=dp(5),
             padding=dp(30)
         )
 
-        # --- LOGO ---
-        logo_wrap = MDAnchorLayout(anchor_x="center", anchor_y="top")
+        # ---------- LOGO CENTRATO, SENZA SFONDO ----------
+        logo_container = MDAnchorLayout(
+            anchor_x="center",
+            anchor_y="top",
+            size_hint=(1, None),
+            height=dp(150),
+            md_bg_color=(0, 0, 0, 0)  # completamente trasparente
+        )
+
         logo = Image(
-            source="app/assets/logo.png",
+            source="app/assets/logo_home.png",
             size_hint=(None, None),
-            size=(dp(150), dp(150)),
-            allow_stretch=True,
-            keep_ratio=True
+            size=(dp(230), dp(230)),
+            allow_stretch=False,   # niente stiramenti
+            keep_ratio=True,
+            mipmap=True
         )
-        logo_wrap.add_widget(logo)
-        layout.add_widget(logo_wrap)
 
-        # --- SPAZIO MAGGIORE (EasyAuto scende di ~2mm) ---
-        layout.add_widget(MDWidget(size_hint_y=None, height=dp(55)))
+        logo_container.add_widget(logo)
+        layout.add_widget(logo_container)
 
-        # --- Blu notte ---
-        blu_notte = (13/255, 71/255, 161/255, 1)
-
-        # --- TITOLO APP ---
+        # ---------- SOTTOTITOLO ----------
         layout.add_widget(
             MDLabel(
-                text="EasyAuto",
+                text="[i]Scadenze Macchina[/i]",
+                markup=True,
                 halign="center",
-                font_style="H4",
                 theme_text_color="Custom",
-                text_color=blu_notte
+                text_color=(0.1, 0.15, 0.25, 1),
+                font_size="25sp" 
             )
         )
 
-        # --- SOTTOTITOLO ---
-        layout.add_widget(
-            MDLabel(
-                text="Scadenze Macchina",
-                halign="center",
-                font_style="Subtitle1",
-                theme_text_color="Custom",
-                text_color=(0.2, 0.2, 0.2, 1)
-            )
-        )
 
-        layout.add_widget(MDWidget(size_hint_y=None, height=dp(25)))
+        # ---------- COLORI ----------
+        blu_notte = (13/255, 27/255, 42/255, 1)
 
-        # --- VERDE PETROLIO ---
-        teal = (0/255, 124/255, 145/255, 1)
-
-        # --- PULSANTE: Aggiungi Auto ---
+        # ---------- PULSANTE: Aggiungi Auto ----------
         btn_add = MDRaisedButton(
             text="Aggiungi Auto",
             size_hint=(0.6, None),
             height=dp(50),
             pos_hint={"center_x": 0.5},
-            md_bg_color=teal,
+            md_bg_color=blu_notte,
             text_color=(1, 1, 1, 1),
+            radius=[12, 12, 12, 12],
             elevation=3
         )
-        btn_add.bind(on_release=lambda x: self._go("add_auto"))
         layout.add_widget(btn_add)
 
-        # --- PULSANTE: Le mie Auto ---
+        # ---------- PULSANTE: Le mie Auto ----------
         btn_mie = MDRaisedButton(
             text="Le mie Auto",
             size_hint=(0.6, None),
             height=dp(50),
             pos_hint={"center_x": 0.5},
-            md_bg_color=teal,
+            md_bg_color=blu_notte,
             text_color=(1, 1, 1, 1),
+            radius=[12, 12, 12, 12],
             elevation=3
         )
-        btn_mie.bind(on_release=lambda x: self._go("mie_auto"))
         layout.add_widget(btn_mie)
 
+        # ---------- SPAZIO FINALE ----------
         layout.add_widget(MDWidget())
 
-        # --- INFO ---
-        info_wrap = MDAnchorLayout(anchor_x="center", anchor_y="bottom")
+        # ---------- BOTTONE INFO ----------
+        info_box = MDAnchorLayout(anchor_x="center", anchor_y="bottom")
         info_btn = MDRoundFlatIconButton(
             icon="information-outline",
             text="Info",
@@ -108,14 +101,10 @@ class HomeScreen(MDScreen):
             height=dp(45),
             text_color=(0, 0, 0, 1)
         )
-        info_wrap.add_widget(info_btn)
-        layout.add_widget(info_wrap)
+        info_box.add_widget(info_btn)
+        layout.add_widget(info_box)
 
         self.add_widget(layout)
-
-    def _go(self, screen_name):
-        if self.manager:
-            self.manager.current = screen_name
 
     def _update_bg(self, *args):
         self.bg.pos = self.pos
