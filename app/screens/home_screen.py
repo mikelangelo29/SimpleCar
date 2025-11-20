@@ -73,7 +73,16 @@ class HomeScreen(MDScreen):
             radius=[12, 12, 12, 12],
             elevation=3
         )
+       
+        # CLICK TEST
+        print("Bind attivo su Aggiungi Auto")
+
+        btn_add.bind(
+            on_release=lambda x: setattr(self.manager, "current", "add_auto")
+        )
+
         layout.add_widget(btn_add)
+        
 
         # ---------- PULSANTE: Le mie Auto ----------
         btn_mie = MDRaisedButton(

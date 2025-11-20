@@ -1,14 +1,14 @@
 from kivy.app import App
-from kivy.uix.screenmanager import ScreenManager
-
+from kivy.uix.screenmanager import MDScreenManager
+from app.screens.add_auto_screen import AddAutoScreen
 from app.screens.home_screen import HomeScreen
 
 class SimpleCarApp(App):
     def build(self):
-        sm = ScreenManager()
+        sm = MDScreenManager()
         sm.add_widget(HomeScreen(name="home"))
+        sm.add_widget(AddAutoScreen(name="add_auto"))
         return sm
 
 if __name__ == "__main__":
     SimpleCarApp().run()
-
