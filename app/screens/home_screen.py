@@ -62,27 +62,7 @@ class HomeScreen(MDScreen):
         # ---------- COLORI ----------
         blu_notte = (13/255, 27/255, 42/255, 1)
 
-        # ---------- PULSANTE: Aggiungi Auto ----------
-        btn_add = MDRaisedButton(
-            text="Aggiungi Auto",
-            size_hint=(0.6, None),
-            height=dp(50),
-            pos_hint={"center_x": 0.5},
-            md_bg_color=blu_notte,
-            text_color=(1, 1, 1, 1),
-            radius=[12, 12, 12, 12],
-            elevation=3
-        )
-       
-        # CLICK TEST
-        print("Bind attivo su Aggiungi Auto")
-
-        btn_add.bind(
-            on_release=lambda x: setattr(self.manager, "current", "add_auto")
-        )
-
-        layout.add_widget(btn_add)
-        
+   
 
         # ---------- PULSANTE: Le mie Auto ----------
         btn_mie = MDRaisedButton(
@@ -92,8 +72,11 @@ class HomeScreen(MDScreen):
             pos_hint={"center_x": 0.5},
             md_bg_color=blu_notte,
             text_color=(1, 1, 1, 1),
-            radius=[12, 12, 12, 12],
             elevation=3
+         
+        )
+        btn_mie.bind(
+            on_release=lambda x: setattr(self.manager, "current", "mycars")
         )
         layout.add_widget(btn_mie)
 

@@ -8,6 +8,8 @@ from kivymd.uix.anchorlayout import MDAnchorLayout
 from kivy.metrics import dp
 from kivy.utils import get_color_from_hex
 
+import json
+import os
 
 BLU_NOTTE = get_color_from_hex("0D1B2A")  # colore uniforme di EasyAuto
 
@@ -26,7 +28,6 @@ class AddAutoScreen(MDScreen):
             spacing=dp(18),
             size_hint=(0.88, None),
             height=dp(540),
-            radius=[20, 20, 20, 20],
             elevation=6,
             md_bg_color=(1, 1, 1, 1)
         )
@@ -112,8 +113,8 @@ class AddAutoScreen(MDScreen):
             text_color=(1, 1, 1, 1),
             size_hint=(0.5, None),
             height=dp(50),
-            radius=[12, 12, 12, 12],
             disabled=True,
+            on_release=self.save_auto  
         )
         save_box = MDAnchorLayout(anchor_x="center", anchor_y="center")
         save_box.add_widget(self.btn_save)
@@ -129,4 +130,44 @@ class AddAutoScreen(MDScreen):
         km_ok = bool(self.km.text.strip())
 
         self.btn_save.disabled = not (modello_ok and km_ok)
+
+
+    def save_auto(self, *args):
+        data_path = "app/data/autos.json"
+
+        # Se il file non esiste → crealo
+        if not os.path.exists(data_path):
+            os.makedirs(os.path.dirname(data_path), exist_ok=True)
+            with open(data_path, "w", encoding="utf-8") as f:
+                json.dump({"autos": []}, f, indent=4)
+
+        # Carica autos.json
+        with open(data_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        autos = data.get("autos", [])
+
+        # Versione FREE → massimo 1 auto
+        if len(autos) >= 1:
+            return  # NON SALVIAMO NULLA
+
+        # Crea nuovo dizionario auto
+        new_auto = {
+            "marca": self.marca.text.strip(),
+            "modello": self.modello.text.strip(),
+            "targa": self.targa.text.strip(),
+            "km": int(self.km.text.strip()),
+            "anno": self.anno.text.strip(),
+            "scadenze": {}
+        }
+
+        autos.append(new_auto)
+
+        # Salva su file
+        with open(data_path, "w", encoding="utf-8") as f:
+            json.dump({"autos": autos}, f, indent=4)
+
+        # Torna allo screen “mycars”
+        self.manager.current = "mycars"
+
 
