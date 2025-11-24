@@ -1,0 +1,12 @@
+{
+    "autos": [
+        {
+            "marca": "Opel",
+            "modello": "Astra",
+            "targa": "",
+            "km": 375500,
+            "anno": "",
+            "scadenze": {}
+        }
+    ]
+}

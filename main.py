@@ -19,6 +19,8 @@ from app.screens.mycars_screen import MyCarsScreen
 from app.screens.add_auto_screen import AddAutoScreen
 from app.screens.home_screen import HomeScreen
 from app.screens.detail_auto_screen import DetailAutoScreen
+from app.screens.gomme_screen import GommeScreen
+
 
 
 
@@ -31,6 +33,7 @@ class SimpleCarApp(MDApp):
         sm.add_widget(AddAutoScreen(name="add_auto"))
         sm.add_widget(MyCarsScreen(name="mycars"))
         sm.add_widget(DetailAutoScreen(name="detail_auto"))
+        sm.add_widget(GommeScreen(name="gomme"))
 
         return sm
 
