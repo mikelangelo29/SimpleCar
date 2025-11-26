@@ -26,7 +26,7 @@ from app.screens.gomme_screen import GommeScreen
 
 class SimpleCarApp(MDApp):
     def build(self):
-        self.title = "EasyAuto"
+        self.title = "EasyCar"
         self.icon = "app/assets/ea_icon.png"
         sm = MDScreenManager()
         sm.add_widget(HomeScreen(name="home"))
