@@ -33,12 +33,19 @@ class AddAutoScreen(MDScreen):
         )
 
         # ---------- TITOLO + BACK ----------
-        header = MDBoxLayout(orientation="horizontal", size_hint=(1, None), height=dp(40), spacing=dp(10))
+        header = MDBoxLayout(
+            orientation="horizontal",
+            size_hint=(1, None),
+            height=dp(40),
+            spacing=dp(10)
+        )
+
         back_btn = MDIconButton(
             icon="arrow-left",
             icon_size=dp(28),
-            on_release=lambda x: setattr(self.manager, "current", "home")
+            on_release=lambda x: setattr(self.manager, "current", "mycars")
         )
+
         title = MDLabel(
             text="Aggiungi Auto",
             halign="center",
@@ -48,10 +55,11 @@ class AddAutoScreen(MDScreen):
 
         header.add_widget(back_btn)
         header.add_widget(title)
-        header.add_widget(MDLabel(size_hint=(0.3, 1)))  # per bilanciare lo spazio a destra
+        header.add_widget(MDLabel(size_hint=(0.3, 1)))  # bilanciamento
+
         card.add_widget(header)
 
-        # ---------- CAMPI CON ICONE ----------
+        # ---------- CAMPI ----------
         self.marca = MDTextField(
             hint_text="Marca (opzionale)",
             mode="rectangle",
@@ -83,17 +91,16 @@ class AddAutoScreen(MDScreen):
         card.add_widget(self.targa)
 
         self.km = MDTextField(
-        hint_text="Chilometraggio *",
-        helper_text="obbligatorio",
-        helper_text_mode="on_focus",
-        mode="rectangle",
-        size_hint=(1, None),
-        height=dp(55),
-        input_filter="int",
-        icon_left="speedometer",
-    )
+            hint_text="Chilometraggio *",
+            helper_text="obbligatorio",
+            helper_text_mode="on_focus",
+            mode="rectangle",
+            size_hint=(1, None),
+            height=dp(55),
+            input_filter="int",
+            icon_left="speedometer",
+        )
         self.km.bind(text=self.check_required_fields)
-
         card.add_widget(self.km)
 
         self.anno = MDTextField(
@@ -106,7 +113,7 @@ class AddAutoScreen(MDScreen):
         )
         card.add_widget(self.anno)
 
-        # ---------- SALVA (disabled all’inizio) ----------
+        # ---------- SALVA ----------
         self.btn_save = MDRaisedButton(
             text="Salva",
             md_bg_color=BLU_NOTTE,
@@ -114,24 +121,23 @@ class AddAutoScreen(MDScreen):
             size_hint=(0.5, None),
             height=dp(50),
             disabled=True,
-            on_release=self.save_auto  
+            on_release=self.save_auto
         )
+
         save_box = MDAnchorLayout(anchor_x="center", anchor_y="center")
         save_box.add_widget(self.btn_save)
-
         card.add_widget(save_box)
 
         root.add_widget(card)
         self.add_widget(root)
 
-    # ------------ LOGICA DEI CAMPI OBBLIGATORI -------------
+    # ------------ LOGICA CAMPI OBBLIGATORI -------------
     def check_required_fields(self, *args):
         modello_ok = bool(self.modello.text.strip())
         km_ok = bool(self.km.text.strip())
-
         self.btn_save.disabled = not (modello_ok and km_ok)
 
-
+    # ------------ SALVATAGGIO AUTO (VERSIONE PRO + COLORI) ------------
     def save_auto(self, *args):
         data_path = "app/data/autos.json"
 
@@ -147,18 +153,24 @@ class AddAutoScreen(MDScreen):
 
         autos = data.get("autos", [])
 
-        # Versione FREE → massimo 1 auto
-        if len(autos) >= 1:
-            return  # NON SALVIAMO NULLA
+        # --- Modalità PRO attiva (rimosso limite FREE) ---
+        # if len(autos) >= 1:
+        #     return
 
-        # Crea nuovo dizionario auto
+        # --- Assegna colore tachimetro automaticamente ---
+        import random
+        colors = ["blue", "red", "green", "yellow", "orange", "purple"]
+        auto_color = random.choice(colors)
+
+        # --- Crea nuovo dizionario auto ---
         new_auto = {
             "marca": self.marca.text.strip(),
             "modello": self.modello.text.strip(),
             "targa": self.targa.text.strip(),
             "km": int(self.km.text.strip()),
             "anno": self.anno.text.strip(),
-            "scadenze": {}
+            "scadenze": {},
+            "tacho_color": auto_color   # ← QUI VIENE SALVATO IL COLORE
         }
 
         autos.append(new_auto)
@@ -169,5 +181,3 @@ class AddAutoScreen(MDScreen):
 
         # Torna allo screen “mycars”
         self.manager.current = "mycars"
-
-

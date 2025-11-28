@@ -1,12 +1,22 @@
 {
     "autos": [
         {
-            "marca": "Opel",
-            "modello": "Astra",
+            "marca": "",
+            "modello": "mamma",
             "targa": "",
-            "km": 375500,
+            "km": 4564456,
             "anno": "",
-            "scadenze": {}
+            "scadenze": {},
+            "tacho_color": "blue"
+        },
+        {
+            "marca": "",
+            "modello": "sasa",
+            "targa": "",
+            "km": 45644,
+            "anno": "",
+            "scadenze": {},
+            "tacho_color": "red"
         }
     ]
 }

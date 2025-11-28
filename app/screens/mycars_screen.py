@@ -7,6 +7,7 @@ from kivymd.uix.widget import MDWidget
 from kivymd.uix.toolbar import MDTopAppBar
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.scrollview import MDScrollView
+from kivy.uix.image import Image
 from kivy.metrics import dp
 from kivy.utils import get_color_from_hex
 
@@ -14,7 +15,8 @@ import json
 import os
 
 BLU_NOTTE = get_color_from_hex("0D1B2A")
-AZZURRO_ICONA = (0.18, 0.45, 1, 1)
+AZZURRO = get_color_from_hex("3A6EA5")
+
 
 
 class MyCarsScreen(MDScreen):
@@ -27,7 +29,7 @@ class MyCarsScreen(MDScreen):
 
         # ---------- TOP BAR ----------
         top_bar = MDTopAppBar(
-            title="",
+            title="Le mie Auto",
             elevation=0,
             md_bg_color=BLU_NOTTE,
             left_action_items=[
@@ -51,7 +53,7 @@ class MyCarsScreen(MDScreen):
         scroll.add_widget(scroll_box)
         self.scroll_box = scroll_box
 
-        # ---------- Bottone Aggiungi Auto ----------
+        # ---------- BOTTONE AGGIUNGI AUTO ----------
         self.btn_add = MDRaisedButton(
             text="Aggiungi Auto",
             md_bg_color=BLU_NOTTE,
@@ -63,7 +65,7 @@ class MyCarsScreen(MDScreen):
         )
         self.scroll_box.add_widget(self.btn_add)
 
-        # ---------- Lista ----------
+        # ---------- LISTA CARD ----------
         self.list_box = MDBoxLayout(
             orientation="vertical",
             spacing=dp(15),
@@ -75,7 +77,7 @@ class MyCarsScreen(MDScreen):
         self.root_layout.add_widget(scroll)
         self.add_widget(self.root_layout)
 
-        # ---------- FOOTER / NAVBAR ----------
+        # ---------- FOOTER ----------
         footer = MDBoxLayout(
             orientation="horizontal",
             size_hint_y=None,
@@ -118,7 +120,9 @@ class MyCarsScreen(MDScreen):
             data = json.load(f)
 
         autos = data.get("autos", [])
-        self.btn_add.disabled = len(autos) >= 1
+
+        # Modalità PRO: nessun limite
+        self.btn_add.disabled = False
 
         # ---------- NESSUNA AUTO ----------
         if len(autos) == 0:
@@ -151,149 +155,181 @@ class MyCarsScreen(MDScreen):
             self.list_box.add_widget(empty_card)
             return
 
-        # ---------- AUTO PRESENTE ----------
-        auto = autos[0]
+        # ---------- AUTO PRESENTI (CICLO MULTI-CARD) ----------
+        for auto in autos:
 
-        marca = auto.get("marca", "")
-        modello = auto.get("modello", "")
-        km = auto.get("km", 0)
-        titolo = " ".join([x for x in [marca, modello] if x.strip()])
+            marca = auto.get("marca", "")
+            modello = auto.get("modello", "")
+            km = auto.get("km", 0)
+            titolo = " ".join([x for x in [marca, modello] if x.strip()])
+            color = auto.get("tacho_color", "blue")
+            tacho_source = f"app/assets/icons/tacho_{color}.png"
 
-        # ---------- CARD AUTO ----------
-        card = MDCard(
-            orientation="vertical",
-            padding=dp(20),
-            radius=[20, 20, 20, 20],
-            elevation=0,
-            size_hint=(1, None),
-            height=dp(310),
-            style="outlined",
-            line_color=(0.8, 0.8, 0.8, 1),
-            line_width=1.2,
-        )
+            # ---------- CARD ----------
+            card = MDCard(
+                orientation="vertical",
+                padding=dp(20),
+                radius=[20, 20, 20, 20],
+                elevation=6,
+                shadow_softness=3,
+                shadow_offset=(0, -1),
+                size_hint=(1, None),
+                height=dp(420),
+                style="outlined",
+                line_color=(0.88, 0.88, 0.88, 1),
+                line_width=1.1,
+            )
 
-        # ---------- HEADER CLICCABILE ----------
-        header_box = MDBoxLayout(
-            orientation="horizontal",
-            padding=(5, 5),
-            spacing=dp(10),
-            size_hint_y=None,
-            height=dp(40),
-        )
+            # ---------- HEADER ----------
+            header_box = MDBoxLayout(
+                orientation="horizontal",
+                spacing=dp(10),
+                padding=(0, dp(1), 0, dp(4)),
+                size_hint_y=None,
+                height=dp(55),
+            )
 
-        title_label = MDLabel(
-            text=str(titolo),
-            font_style="H5",
-            halign="left",
-            valign="center",
-        )
+            title_label = MDLabel(
+                text=str(titolo),
+                font_style="H5",
+                halign="left",
+                valign="middle",
+            )
 
-        details_icon = MDIcon(
-            icon="chevron-right",
-            theme_text_color="Custom",
-            text_color=(0.5, 0.5, 0.5, 1),  # grigio elegante
-            font_size=dp(32),
-        )
-
-
-        header_box.add_widget(title_label)
-        header_box.add_widget(details_icon)
-
-        def open_details(*args):
-            self.manager.current = "detail_auto"
-
-        header_box.bind(
-            on_touch_down=lambda w, t: open_details()
-            if header_box.collide_point(t.x, t.y)
-            else False
-        )
-
-        card.add_widget(header_box)
-
-        # separatore
-        card.add_widget(MDWidget(size_hint_y=None, height=dp(2)))
-        card.add_widget(MDBoxLayout(md_bg_color=(0.9, 0.9, 0.9, 1), size_hint_y=None, height=dp(1)))
-
-        # ---------- Icona + KM ----------
-        row = MDBoxLayout(
-            orientation="horizontal",
-            spacing=dp(15),
-            size_hint_y=None,
-            height=dp(45)
-        )
-
-        row.add_widget(
-            MDIcon(
-                icon="car",
-                font_size=dp(40),
+            details_icon = MDIcon(
+                icon="chevron-right",
                 theme_text_color="Custom",
-                text_color=AZZURRO_ICONA
+                text_color=BLU_NOTTE,
+                font_size=dp(30),
             )
-        )
 
-        row.add_widget(
-            MDLabel(
-                text=f"Chilometraggio: {km} km",
-                theme_text_color="Secondary"
+            header_box.add_widget(title_label)
+            header_box.add_widget(details_icon)
+
+            header_box.bind(
+                on_touch_down=lambda w, t: setattr(self.manager, "current", "detail_auto")
+                if header_box.collide_point(t.x, t.y)
+                else False
             )
-        )
 
-        card.add_widget(row)
+            card.add_widget(header_box)
 
-        # ---------- PULSANTI ----------
-        buttons = MDBoxLayout(
-            orientation="vertical",
-            spacing=dp(10),
-            size_hint_y=None,
-            height=dp(110)
-        )
-
-        update_btn = MDRaisedButton(
-            text="Aggiorna KM",
-            md_bg_color=BLU_NOTTE,
-            text_color=(1, 1, 1, 1),
-            elevation=0,
-            size_hint=(1, None),
-            height=dp(45),
-            on_release=lambda x: self.open_update_km_dialog(km)
-        )
-
-        delete_btn = MDRaisedButton(
-            text="Elimina Auto",
-            md_bg_color=(0.9, 0.1, 0.1, 1),
-            text_color=(1, 1, 1, 1),
-            elevation=0,
-            size_hint=(1, None),
-            height=dp(45),
-            on_release=lambda x: self.confirm_delete()
-        )
-
-        buttons.add_widget(update_btn)
-        buttons.add_widget(delete_btn)
-
-        card.add_widget(MDWidget(size_hint_y=None, height=dp(10)))
-        card.add_widget(buttons)
-
-        self.list_box.add_widget(card)
-
-    # ---------- DIALOG DELETE AUTO ----------
-    def confirm_delete(self):
-        if not self.dialog_delete:
-            self.dialog_delete = MDDialog(
-                title="Eliminare l'auto?",
-                text="Sicuro di voler eliminare l'auto?",
-                buttons=[
-                    MDFlatButton(text="ANNULLA", on_release=lambda x: self.dialog_delete.dismiss()),
-                    MDFlatButton(text="ELIMINA", text_color=(1, 0, 0, 1),
-                                 on_release=lambda x: self.delete_auto())
-                ],
+            # ---------- SEPARATORE ----------
+            card.add_widget(
+                MDBoxLayout(
+                    md_bg_color=BLU_NOTTE,
+                    size_hint_y=None,
+                    height=dp(2)
+                )
             )
+            card.add_widget(MDWidget(size_hint_y=None, height=dp(10)))
+
+            # ---------- TACHIMETRO + KM ----------
+            tacho_row = MDBoxLayout(
+                orientation="horizontal",
+                spacing=dp(20),
+                size_hint_y=None,
+                height=dp(120),
+                padding=(0, dp(10)),
+            )
+
+            tacho_image = Image(
+                source=tacho_source,
+                size_hint=(None, None),
+                size=(dp(100), dp(100)),
+            )
+
+            km_box = MDCard(
+                radius=[14, 14, 14, 14],
+                elevation=2,
+                padding=(dp(18), dp(10)),
+                size_hint=(None, None),
+                size=(dp(140), dp(55)),
+                md_bg_color=(0.95, 0.95, 0.95, 1),
+            )
+
+            km_label = MDLabel(
+                text=f"{km:,} km".replace(",", "."),
+                font_style="H6",
+                halign="center",
+                valign="middle",
+                theme_text_color="Primary",
+            )
+
+            km_box.add_widget(km_label)
+
+            tacho_row.add_widget(tacho_image)
+            tacho_row.add_widget(km_box)
+
+            card.add_widget(tacho_row)
+
+            card.add_widget(MDWidget(size_hint_y=None, height=dp(20)))
+
+            # ---------- BOTTONI ----------
+            buttons = MDBoxLayout(
+                orientation="vertical",
+                spacing=dp(10),
+                size_hint_y=None,
+                height=dp(120),
+            )
+
+            update_btn = MDRaisedButton(
+                text="Aggiorna KM",
+                md_bg_color=AZZURRO,
+                text_color=(1, 1, 1, 1),
+                elevation=0,
+                size_hint=(1, None),
+                height=dp(45),
+                on_release=lambda x, auto=auto: self.open_update_km_dialog(auto["km"]),
+            )
+
+            delete_btn = MDFlatButton(
+                text="Elimina Auto",
+                text_color=(0.75, 0.18, 0.18, 1),
+                line_color=(0.75, 0.18, 0.18, 1),
+                size_hint=(1, None),
+                height=dp(45),
+                on_release=lambda x, auto=auto: self.confirm_delete_specific(auto),
+            )
+
+            buttons.add_widget(update_btn)
+            buttons.add_widget(delete_btn)
+
+            card.add_widget(buttons)
+
+            self.list_box.add_widget(card)
+            self.list_box.add_widget(MDWidget(size_hint_y=None, height=dp(80)))
+
+
+    # ---------- DELETE AUTO SPECIFICA ----------
+    def confirm_delete_specific(self, auto):
+        self.auto_to_delete = auto
+
+        self.dialog_delete = MDDialog(
+            title="Eliminare l'auto?",
+            text="Sicuro di voler eliminare questa auto?",
+            buttons=[
+                MDFlatButton(text="ANNULLA", on_release=lambda x: self.dialog_delete.dismiss()),
+                MDFlatButton(
+                    text="ELIMINA",
+                    text_color=(1, 0, 0, 1),
+                    on_release=lambda x: self.delete_auto(auto),
+                ),
+            ],
+        )
         self.dialog_delete.open()
 
-    def delete_auto(self):
-        self.dialog_delete.dismiss()
+    def delete_auto(self, auto):
+        with open(self.data_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        autos = data.get("autos", [])
+        autos.remove(auto)
+
         with open(self.data_path, "w", encoding="utf-8") as f:
-            json.dump({"autos": []}, f, indent=4)
+            json.dump({"autos": autos}, f, indent=4)
+
+        self.dialog_delete.dismiss()
         self.load_autos()
 
     # ---------- AGGIORNA KM ----------
@@ -332,6 +368,7 @@ class MyCarsScreen(MDScreen):
         with open(self.data_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
+        # aggiorna la prima auto (o quella selezionata)
         if data["autos"]:
             data["autos"][0]["km"] = new_km
 
