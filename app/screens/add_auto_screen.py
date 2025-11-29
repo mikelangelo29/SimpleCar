@@ -160,7 +160,16 @@ class AddAutoScreen(MDScreen):
         # --- Assegna colore tachimetro automaticamente ---
         import random
         colors = ["blue", "red", "green", "yellow", "orange", "purple"]
-        auto_color = random.choice(colors)
+
+        # PRIMA AUTO → SEMPRE BLU
+        if len(autos) == 0:
+            auto_color = "blue"
+
+        # AUTO SUCCESSIVE → RANDOM
+        else:
+            auto_color = random.choice(colors)
+
+
 
         # --- Crea nuovo dizionario auto ---
         new_auto = {

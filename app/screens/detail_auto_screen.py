@@ -12,9 +12,6 @@ import json
 import os
 from app.screens.gomme_screen import GommeScreen
 
-
-
-
 # ------------------------- PALETTE -------------------------
 BLU_NOTTE = get_color_from_hex("0D1B2A")
 GRIGIO_SFONDO = (0.94, 0.95, 0.96, 1)
@@ -28,13 +25,17 @@ IMG_TYRE = str(Path(__file__).parent.parent / "assets" / "tyre.png")
 
 class DetailAutoScreen(MDScreen):
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.selected_index = 0  # <<< fondamentale per multi-auto
+
     def on_pre_enter(self):
         self.clear_widgets()
         self.load_auto()
         self.build_ui()
 
     # ---------------------------------------------------------
-    # LOAD AUTO
+    # LOAD AUTO — ORA CARICA QUELLA GIUSTA IN BASE A selected_index
     # ---------------------------------------------------------
     def load_auto(self):
         if not os.path.exists(DATA_PATH):
@@ -45,7 +46,17 @@ class DetailAutoScreen(MDScreen):
             data = json.load(f)
 
         autos = data.get("autos", [])
-        self.auto = autos[0] if autos else None
+
+        # fallback di sicurezza
+        if not autos:
+            self.auto = None
+            return
+
+        index = self.selected_index
+        if index >= len(autos):
+            index = 0
+
+        self.auto = autos[index]
 
         if "scadenze" not in self.auto:
             self.auto["scadenze"] = {}
@@ -74,8 +85,14 @@ class DetailAutoScreen(MDScreen):
         nome_auto = (self.auto.get("marca", "") + " " + self.auto.get("modello", "")).strip()
         km = self.auto.get("km", 0)
 
+        # ======================================================
+        # HEADER AUTO (con tachimetro)
+        # ======================================================
+        tacho_color = self.auto.get("tacho_color", "purple")
+        tacho_src = f"app/assets/icons/tacho_{tacho_color}.png"
+
         header = MDCard(
-            orientation="vertical",
+            orientation="horizontal",
             padding=dp(20),
             size_hint=(1, None),
             height=dp(160),
@@ -84,22 +101,43 @@ class DetailAutoScreen(MDScreen):
             md_bg_color=GRIGIO_HEADER
         )
 
-        lab_nome = MDLabel(
-            text=nome_auto,
-            font_style="H5",
-            halign="left",
-            theme_text_color="Custom",
-            text_color=BLU_NOTTE
+        # --- COLONNA SINISTRA ---
+        left_col = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(5),
+            size_hint_x=0.65
         )
-        lab_km = MDLabel(text=f"Km attuali: {km}", theme_text_color="Secondary", halign="left")
 
-        # tappabile per aggiornamento km
-        lab_km.bind(on_touch_down=lambda w, t: self.open_update_km_dialog()
-                    if lab_km.collide_point(t.x, t.y) else False)
+        left_col.add_widget(
+            MDLabel(
+                text=nome_auto,
+                font_style="H5",
+                halign="left",
+                theme_text_color="Custom",
+                text_color=BLU_NOTTE
+            )
+        )
 
-        header.add_widget(lab_nome)
-        header.add_widget(lab_km)
+        left_col.add_widget(
+            MDLabel(
+                text=f"Km attuali: {km}",
+                theme_text_color="Secondary",
+                halign="left"
+            )
+        )
+
+        # --- COLONNA DESTRA (TACHIMETRO) ---
+        tacho_img = Image(
+            source=tacho_src,
+            size_hint=(None, None),
+            size=(dp(110), dp(110)),
+            pos_hint={"center_y": 0.5}
+        )
+
+        header.add_widget(left_col)
+        header.add_widget(tacho_img)
         root.add_widget(header)
+
 
         # ======================================================
         # SCADENZE TECNICHE
@@ -109,7 +147,7 @@ class DetailAutoScreen(MDScreen):
         tecnici = [
             ("Tagliando",            "tagliando",        "tune"),
             ("Revisione",            "revisione",         "clipboard-check"),
-            ("Gomme",                "gomme",             "tyre"),  # ICONA PNEUMATICO
+            ("Gomme",                "gomme",             "tyre"),
             ("Dischi freno",         "dischi",            "disc"),
             ("Pastiglie freno",      "pastiglie",         "car-brake-alert"),
             ("Ammortizzatori",       "ammortizzatori",    "car-defrost-rear"),
@@ -135,7 +173,7 @@ class DetailAutoScreen(MDScreen):
             root.add_widget(self.param_card(nome, key, icon))
 
         # ======================================================
-        # SPAZIO PER EVITARE CHE IL FOOTER COPRA LE CARD
+        # SPAZIO PER EVITARE SOVRAPPOSIZIONI
         # ======================================================
         root.add_widget(MDBoxLayout(size_hint=(1, None), height=dp(80)))
 
@@ -165,15 +203,27 @@ class DetailAutoScreen(MDScreen):
     # SECTION TITLE
     # ---------------------------------------------------------
     def section_title(self, text):
-        box = MDBoxLayout(orientation="vertical", size_hint=(1, None), height=dp(45))
-        lbl = MDLabel(text=text, font_style="H6", theme_text_color="Secondary")
-        sep = MDBoxLayout(size_hint=(1, None), height=dp(1), md_bg_color=(0.75, 0.75, 0.78, 1))
+        box = MDBoxLayout(
+            orientation="vertical",
+            size_hint=(1, None),
+            height=dp(45)
+        )
+        lbl = MDLabel(
+            text=text,
+            font_style="H6",
+            theme_text_color="Secondary"
+        )
+        sep = MDBoxLayout(
+            size_hint=(1, None),
+            height=dp(1),
+            md_bg_color=(0.75, 0.75, 0.78, 1)
+        )
         box.add_widget(lbl)
         box.add_widget(sep)
         return box
 
     # ---------------------------------------------------------
-    # PARAMETER CARD (uguale per tutto, comprese gomme)
+    # PARAMETER CARD
     # ---------------------------------------------------------
     def param_card(self, title, key, icon):
 
@@ -194,7 +244,7 @@ class DetailAutoScreen(MDScreen):
             on_release=lambda x: self.open_item(key)
         )
 
-        # ICONA → Se “gomme”, usare PNG
+        # Icona speciale per gomme (usa PNG)
         if key == "gomme":
             icona = Image(
                 source=IMG_TYRE,
@@ -223,14 +273,57 @@ class DetailAutoScreen(MDScreen):
         return card
 
     # ---------------------------------------------------------
-    # OPENERS
+    # OPENERS (GOMME ecc.)
     # ---------------------------------------------------------
     def open_item(self, key):
         if key == "gomme":
+            self.manager.get_screen("gomme").current_auto = self.auto
             self.manager.current = "gomme"
-        else:
-            print(f"APRI POPUP → {key}")
 
-
+    # ---------------------------------------------------------
+    # AGGIORNAMENTO KM (dialog)
+    # ---------------------------------------------------------
     def open_update_km_dialog(self):
-        print("Popup aggiornamento km (da fare)")
+        from kivymd.uix.dialog import MDDialog
+        from kivymd.uix.textfield import MDTextField
+
+        self.km_field = MDTextField(
+            hint_text="Nuovo chilometraggio",
+            text=str(self.auto["km"]),
+            input_filter="int",
+            mode="rectangle"
+        )
+
+        self.dialog_km = MDDialog(
+            title="Aggiorna chilometraggio",
+            type="custom",
+            content_cls=self.km_field,
+            buttons=[
+                MDIconButton(icon="close", on_release=lambda x: self.dialog_km.dismiss()),
+                MDIconButton(icon="check",
+                             text_color=BLU_NOTTE,
+                             on_release=lambda x: self.save_km())
+            ],
+        )
+
+        self.dialog_km.open()
+
+    def save_km(self):
+        val = self.km_field.text.strip()
+
+        if not val.isdigit():
+            self.km_field.error = True
+            return
+
+        new_km = int(val)
+
+        with open(DATA_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        data["autos"][self.selected_index]["km"] = new_km
+
+        with open(DATA_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+
+        self.dialog_km.dismiss()
+        self.on_pre_enter()
