@@ -10,7 +10,9 @@ from kivy.utils import get_color_from_hex
 from pathlib import Path
 import json
 import os
-from app.screens.gomme_screen import GommeScreen
+
+
+
 
 # ------------------------- PALETTE -------------------------
 BLU_NOTTE = get_color_from_hex("0D1B2A")
@@ -279,6 +281,15 @@ class DetailAutoScreen(MDScreen):
         if key == "gomme":
             self.manager.get_screen("gomme").current_auto = self.auto
             self.manager.current = "gomme"
+        elif key == "revisione":
+            rev_screen = self.manager.get_screen("revisione")
+            rev_screen.current_auto = self.auto
+            self.manager.current = "revisione"
+
+    
+    def update_view(self):
+        self.refresh_from_data()
+
 
     # ---------------------------------------------------------
     # AGGIORNAMENTO KM (dialog)

@@ -8,6 +8,15 @@
             "anno": "",
             "scadenze": {},
             "tacho_color": "blue"
+        },
+        {
+            "marca": "",
+            "modello": "sfds",
+            "targa": "",
+            "km": 456112,
+            "anno": "",
+            "scadenze": {},
+            "tacho_color": "purple"
         }
     ]
 }
