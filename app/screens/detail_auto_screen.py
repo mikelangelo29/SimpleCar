@@ -288,7 +288,7 @@ class DetailAutoScreen(MDScreen):
 
     
     def update_view(self):
-        self.refresh_from_data()
+        self.on_pre_enter()
 
 
     # ---------------------------------------------------------
@@ -338,3 +338,26 @@ class DetailAutoScreen(MDScreen):
 
         self.dialog_km.dismiss()
         self.on_pre_enter()
+    
+    def save_auto_data(self):
+        """
+        Salva TUTTE le modifiche fatte a self.auto
+        dentro autos.json per l'auto selezionata.
+        """
+        if not os.path.exists(DATA_PATH):
+            return
+
+        # 1) Carica il file
+        with open(DATA_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # 2) Sovrascrive l'auto giusta
+        data["autos"][self.selected_index] = self.auto
+
+        # 3) Riscrive il JSON
+        with open(DATA_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+
+        # 4) Aggiorna UI
+        self.on_pre_enter()
+

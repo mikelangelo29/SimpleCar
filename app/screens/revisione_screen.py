@@ -1,87 +1,99 @@
-from datetime import datetime
-
-from kivymd.uix.screen import MDScreen
+from kivy.uix.screenmanager import Screen
+from kivy.uix.anchorlayout import AnchorLayout
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
-from kivymd.uix.button import MDFlatButton, MDRaisedButton
-from kivymd.uix.pickers import MDDatePicker
+from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDIconButton
+from kivy.uix.image import Image
 from kivy.metrics import dp
+from kivymd.uix.dialog import MDDialog
+from datetime import datetime
 
 
-class RevisioneScreen(MDScreen):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # qui ci mettiamo il dizionario auto passato da DetailAuto
-        self.current_auto = None
+class RevisioneScreen(Screen):
 
-    # quando entriamo nello screen, costruiamo la UI
     def on_pre_enter(self, *args):
+        detail = self.manager.get_screen("detail_auto")
+        self.current_auto = detail.auto
         self.build_ui()
 
     def build_ui(self):
-        from kivy.uix.image import Image
-
         self.clear_widgets()
 
-        # ROOT → verticale classico
-        root = MDBoxLayout(
+        # ---------- ROOT ----------
+        root = AnchorLayout(anchor_y="top")
+
+        content = MDBoxLayout(
             orientation="vertical",
-            padding=(dp(10), dp(10), dp(10), dp(10)),
-            spacing=dp(10)
+            padding=dp(12),
+            spacing=dp(20),
+            size_hint_y=None
         )
+        content.bind(minimum_height=content.setter("height"))
+        root.add_widget(content)
 
-        # -----------------------
-        # SPAZIO SUPERIORE
-        # -----------------------
-        root.add_widget(MDBoxLayout(size_hint_y=None, height=dp(20)))
-
-        # -----------------------
-        # TITOLO
-        # -----------------------
-        title = MDLabel(
-            text="Revisione",
-            halign="center",
-            font_style="H4",
-            theme_text_color="Custom",
-            text_color=(0.05, 0.1, 0.2, 1),
+        # ---------- TITOLO ----------
+        title_row = MDBoxLayout(
+            orientation="horizontal",
             size_hint_y=None,
             height=dp(50),
         )
-        root.add_widget(title)
 
-        # -----------------------
-        # IMMAGINE
-        # -----------------------
-        img_box = MDBoxLayout(
-            size_hint_y=None,
-            height=dp(160),
+        title = MDLabel(
+            text="Revisione",
+            halign="center",
+            valign="middle",
+            font_style="H4",
+            theme_text_color="Custom",
+            text_color=(0.05, 0.1, 0.2, 1),
         )
 
+        info_icon = MDIconButton(
+            icon="information-outline",
+            theme_text_color="Custom",
+            text_color=(0.05, 0.1, 0.2, 1),
+            icon_size=dp(22),
+            on_release=lambda x: self.show_info()
+        )
+
+        title_row.add_widget(title)
+        title_row.add_widget(info_icon)
+        content.add_widget(title_row)
+
+        # ---------- IMMAGINE ----------
+        image_box = MDBoxLayout(size_hint_y=None, height=dp(140))
         try:
             img = Image(
                 source="app/assets/icons/revisione.png",
                 size_hint=(None, None),
-                width=dp(140),
-                height=dp(140),
+                width=dp(120),
+                height=dp(120),
                 allow_stretch=True,
-                keep_ratio=True
+                keep_ratio=True,
             )
-            img_box.add_widget(MDBoxLayout())
-            img_box.add_widget(img)
-            img_box.add_widget(MDBoxLayout())
+            image_box.add_widget(MDBoxLayout())
+            image_box.add_widget(img)
+            image_box.add_widget(MDBoxLayout())
         except:
-            img_box.add_widget(MDLabel(
-                text="🚗",
-                halign="center",
-                font_style="H1"
-            ))
+            image_box.add_widget(MDLabel(text="🔧", halign="center", font_style="H1"))
 
-        root.add_widget(img_box)
+        content.add_widget(image_box)
 
-        # -----------------------
-        # CARD CAMPi
-        # -----------------------
+        # ---------- DATI AUTO ----------
+        anno_imm_str = ""
+        ultima_rev_str = ""
+        prossima_str = "—"
+
+        if self.current_auto:
+            anno = self.current_auto.get("anno_imm")
+            if anno:
+                anno_imm_str = str(anno)
+
+            rev = self.current_auto.get("revisione", {})
+            ultima_rev_str = rev.get("ultima", "") or ""
+            prossima_str = rev.get("prossima", "—")
+
+        # ---------- CARD ----------
         card = MDBoxLayout(
             orientation="vertical",
             spacing=dp(14),
@@ -92,172 +104,180 @@ class RevisioneScreen(MDScreen):
         )
         card.bind(minimum_height=card.setter("height"))
 
-        # valori iniziali
-        anno_imm_str = ""
-        ultima_rev_str = ""
-        prossima_str = "—"
-
-        if self.current_auto:
-            anno_imm = self.current_auto.get("anno_imm")
-            if anno_imm:
-                anno_imm_str = str(anno_imm)
-
-            rev = self.current_auto.get("revisione", {})
-            ultima_rev_str = rev.get("ultima", "")
-            prossima_str = rev.get("prossima", "—")
-
+        # --- Campo data immatricolazione ---
         self.field_anno = MDTextField(
-            hint_text="Anno immatricolazione",
+            hint_text="Data immatricolazione (gg/mm/aaaa)",
             text=anno_imm_str,
-            input_filter="int",
             mode="rectangle",
+            line_color_normal=(0.05, 0.1, 0.2, 1),
+            line_color_focus=(0.05, 0.1, 0.2, 1),
         )
+               
+        card.add_widget(self.field_anno)
 
+        # --- OPPURE ---
+        oppure = MDLabel(
+            text="oppure",
+            halign="center",
+            theme_text_color="Hint",
+            size_hint_y=None,
+            height=dp(20),
+        )
+        card.add_widget(oppure)
+
+        # --- Campo ultima revisione ---
         self.field_ultima = MDTextField(
-            hint_text="Eventuale Ultima Revisione (gg/mm/aaaa) ",
+            hint_text="Eventuale ultima revisione (gg/mm/aaaa)",
             text=ultima_rev_str,
             mode="rectangle",
-            on_focus=self.on_ultima_focus,
+            line_color_normal=(0.05, 0.1, 0.2, 1),
+            line_color_focus=(0.05, 0.1, 0.2, 1),
         )
-
-        self.label_prossima = MDLabel(
-            text=f"Prossima revisione: {prossima_str}",
-            halign="left",
-            font_style="Subtitle1",
-            theme_text_color="Custom",
-            text_color=(0.15, 0.15, 0.15, 1),
-            size_hint_y=None,
-            height=dp(28),
-        )
-
-        card.add_widget(self.field_anno)
         card.add_widget(self.field_ultima)
+
+        # --- Risultato calcolato ---
+        self.label_prossima = MDLabel(
+            text=f"[b][size=16]Prossima revisione:[/size][/b]  [size=18]{prossima_str}[/size]",
+            markup=True,
+            halign="center",
+            theme_text_color="Custom",
+            text_color=(0.10, 0.10, 0.20, 1),
+            size_hint_y=None,
+            height=dp(32),
+        )
         card.add_widget(self.label_prossima)
-        root.add_widget(card)
 
-        # -----------------------
-        # BOTTONI IN FONDO
-        # -----------------------
-        root.add_widget(MDBoxLayout(size_hint_y=1))  # SPINGE GIÙ I BOTTONI
+        # Bind aggiornamento
+        self.field_anno.bind(text=lambda *x: self.update_prossima())
+        self.field_ultima.bind(text=lambda *x: self.update_prossima())
 
-        buttons_box = MDBoxLayout(
+        content.add_widget(card)
+
+        # ---------- BOTTONI ----------
+        buttons = MDBoxLayout(
             orientation="horizontal",
             spacing=dp(20),
             size_hint_y=None,
             height=dp(60),
-            padding=(0, dp(10)),
         )
 
-        btn_annulla = MDFlatButton(
-            text="ANNULLA",
-            on_release=lambda x: self.go_back(),
-            font_size=dp(16),
+        buttons.add_widget(
+            MDFlatButton(text="ANNULLA", on_release=lambda x: self.go_back())
         )
-        btn_salva = MDRaisedButton(
-            text="SALVA",
-            on_release=lambda x: self.salva(),
-            font_size=dp(16),
+        buttons.add_widget(
+            MDRaisedButton(text="SALVA", on_release=lambda x: self.salva())
         )
 
-        buttons_box.add_widget(btn_annulla)
-        buttons_box.add_widget(btn_salva)
-
-        root.add_widget(buttons_box)
+        content.add_widget(buttons)
 
         self.add_widget(root)
         self.update_prossima()
 
-
-
-    # ---------------------------------------------------------
-    # DATEPICKER PER ULTIMA REVISIONE
-    # ---------------------------------------------------------
-    def on_ultima_focus(self, instance, value):
-        if value:  # quando entra nel campo
-            picker = MDDatePicker()
-            picker.bind(on_save=self.set_ultima_date)
-            picker.open()
-
-    def set_ultima_date(self, instance, date_value, date_range):
-        if date_value:
-            self.field_ultima.text = date_value.strftime("%d/%m/%Y")
-            # aggiorno subito la preview
-            self.update_prossima()
-
-    # ---------------------------------------------------------
-    # LOGICA CALCOLO PROSSIMA REVISIONE
-    # ---------------------------------------------------------
+    # ---------- LOGICA ----------
     def update_prossima(self, *args):
+        imm = self.field_anno.text.strip()
+        ultima = self.field_ultima.text.strip()
 
-        # Se manca anno immatricolazione → non si può calcolare
-        if not self.field_anno.text.strip().isdigit():
-            self.label_prossima.text = "Prossima revisione: —"
+        # Evita calcoli se la data non è completa
+        # Se la data non è completa, non calcoliamo nulla ma NON blocchiamo tutto
+        if imm and len(imm) < 10:
+            self.label_prossima.text = "[b][size=16]Prossima revisione:[/size][/b]  [size=18]—[/size]"
             return
 
-        anno_imm = int(self.field_anno.text.strip())
-        today = datetime.now()
-
-        # Calcolo età auto
-        anni_auto = today.year - anno_imm
-
-        # ----- CASO 1: nessuna revisione fatta -----
-        # Auto ha meno di 4 anni e non esiste una revisione
-        if anni_auto < 4 and not self.field_ultima.text.strip():
-            prima_rev = datetime(anno_imm + 4, today.month, today.day)
-            self.label_prossima.text = f"Prossima revisione: {prima_rev.strftime('%d/%m/%Y')}"
+        if ultima and len(ultima) < 10:
+            self.label_prossima.text = "[b][size=16]Prossima revisione:[/size][/b]  [size=18]—[/size]"
             return
 
-        # ----- CASO 2: ultima revisione esiste -----
-        if self.field_ultima.text.strip():
+        # Se c'è ultima revisione → prioritaria
+        if ultima:
             try:
-                ultima = datetime.strptime(self.field_ultima.text.strip(), "%d/%m/%Y")
-                prossima = ultima.replace(year=ultima.year + 2)
-                self.label_prossima.text = f"Prossima revisione: {prossima.strftime('%d/%m/%Y')}"
+                dt = datetime.strptime(ultima, "%d/%m/%Y")
+                prox = dt.replace(year=dt.year + 2).strftime("%d/%m/%Y")
+                self.label_prossima.text = f"[b][size=16]Prossima revisione:[/size][/b]  [size=18]{prox}[/size]"
                 return
             except:
-                self.label_prossima.text = "Prossima revisione: —"
+                pass
+
+        # Altrimenti calcola dai 4 anni dell'immatricolazione
+        if imm:
+            try:
+                dt = datetime.strptime(imm, "%d/%m/%Y")
+                prox = dt.replace(year=dt.year + 4).strftime("%d/%m/%Y")
+                self.label_prossima.text = f"[b][size=16]Prossima revisione:[/size][/b]  [size=18]{prox}[/size]"
+                return
+            except:
+                pass
+
+        # Nessun dato valido
+        self.label_prossima.text = "[b][size=16]Prossima revisione:[/size][/b]  [size=18]—[/size]"
+
+    # ---------- SALVA ----------
+    def salva(self):
+        imm = self.field_anno.text.strip()
+        ultima = self.field_ultima.text.strip() or None
+
+        # --- VALIDAZIONE DATA IMMATRICOLAZIONE ---
+        if imm:
+            if not self.is_valid_date(imm):
+                self.show_error("La data di immatricolazione non è valida.\nFormato richiesto: gg/mm/aaaa")
+                return
+        else:
+            self.show_error("Inserisci una data di immatricolazione.")
+            return
+
+        # --- VALIDAZIONE ULTIMA REVISIONE (se presente) ---
+        if ultima:
+            if not self.is_valid_date(ultima):
+                self.show_error("La data dell'ultima revisione non è valida.\nFormato richiesto: gg/mm/aaaa")
                 return
 
-        # ----- CASO 3: auto vecchia ma nessuna data inserita -----
-        # (ad esempio, utente non la ricorda → non la calcoliamo)
-        self.label_prossima.text = "Prossima revisione: —"
+        # --- ESTRAZIONE PROSSIMA REVISIONE ---
+        prossima = self.label_prossima.text.split("] ")[1].strip()
 
+        # --- SALVATAGGIO ---
+        self.current_auto["anno_imm"] = imm
+        self.current_auto.setdefault("revisione", {})
+        self.current_auto["revisione"]["ultima"] = ultima
+        self.current_auto["revisione"]["prossima"] = prossima
 
-    # ---------------------------------------------------------
-    # SALVATAGGIO
-    # ---------------------------------------------------------
-    def salva(self):
-        if not self.current_auto:
-            self.go_back()
-            return
+        # aggiorna JSON
+        detail = self.manager.get_screen("detail_auto")
+        detail.save_auto_data()
 
-        anno_txt = self.field_anno.text.strip()
-        if not anno_txt:
-            # anno obbligatorio
-            return
-
-        try:
-            anno_imm = int(anno_txt)
-        except ValueError:
-            return
-
-        ultima_txt = self.field_ultima.text.strip()
-        # ricalcolo la prossima in base ai campi
-        self.update_prossima()
-        prossima_txt = self.label_prossima.text.replace("Prossima revisione: ", "").strip()
-
-        # salviamo nel dizionario auto
-        self.current_auto["anno_imm"] = anno_imm
-        if "revisione" not in self.current_auto:
-            self.current_auto["revisione"] = {}
-
-        self.current_auto["revisione"]["ultima"] = ultima_txt or None
-        self.current_auto["revisione"]["prossima"] = prossima_txt if prossima_txt != "—" else None
-
-        # TODO: qui dopo collegheremo salvataggio su JSON, refresh ecc.
+        # torna alla pagina precedente
         self.go_back()
+    
+    def is_valid_date(self, text):
+        try:
+            datetime.strptime(text, "%d/%m/%Y")
+            return True
+        except:
+            return False
+    
+    def show_error(self, msg):
+        dialog = MDDialog(
+            title="Errore",
+            text=msg,
+            buttons=[MDRaisedButton(text="OK", on_release=lambda x: dialog.dismiss())]
+        )
+        dialog.open()
 
-    # ---------------------------------------------------------
+
     def go_back(self):
-        # torna alla schermata dettaglio
         self.manager.current = "detail_auto"
+
+    # ---------- INFO POPUP ----------
+    def show_info(self):
+        dialog = MDDialog(
+            title="Come funziona la revisione?",
+            text=(
+                "• Se l’auto è nuova, inserisci solo la data di immatricolazione.\n"
+                "• Se ha già fatto una revisione, inserisci solo l’ultima revisione.\n\n"
+                "EasyCar calcolerà automaticamente la prossima scadenza."
+            ),
+            buttons=[MDRaisedButton(text="OK", on_release=lambda x: dialog.dismiss())]
+        )
+        dialog.open()
+
+
+

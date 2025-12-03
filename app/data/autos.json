@@ -7,7 +7,12 @@
             "km": 897456,
             "anno": "",
             "scadenze": {},
-            "tacho_color": "blue"
+            "tacho_color": "blue",
+            "anno_imm": "01/03/2025",
+            "revisione": {
+                "ultima": null,
+                "prossima": "[size=18]01/03/2029[/size]"
+            }
         },
         {
             "marca": "",
