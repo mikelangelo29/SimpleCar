@@ -234,7 +234,6 @@ class DetailAutoScreen(MDScreen):
         prossimo = sc.get("prossimo", "—")
         stato = sc.get("stato", "⚪")
 
-        # --- CARD ---
         card = MDCard(
             orientation="horizontal",
             padding=dp(15),
@@ -264,69 +263,14 @@ class DetailAutoScreen(MDScreen):
                 pos_hint={"center_y": 0.5}
             )
 
-        # ------ LABEL “Prossimo/a” DINAMICO ------
-        if key == "revisione":
-            label_prossimo = "Prossima"
-        elif key in ["assicurazione"]:  # se in futuro aggiungiamo femminili
-            label_prossimo = "Prossima"
-        else:
-            label_prossimo = "Prossimo"
-
-        # --- CONTENUTO ---
         col = MDBoxLayout(orientation="vertical", spacing=dp(3))
-
-        # Titolo card
-        col.add_widget(MDLabel(
-            text=title,
-            font_style="H6",
-            theme_text_color="Custom",
-            text_color=BLU_NOTTE
-        ))
-
-        # Ultimo
-        col.add_widget(MDLabel(
-            text=f"Ultimo: {ultimo}",
-            theme_text_color="Custom",
-            text_color=BLU_NOTTE,
-            font_style="Subtitle2"
-        ))
-
-        # Prossimo / Prossima
-        col.add_widget(MDLabel(
-            text=f"{label_prossimo}: {prossimo}",
-            theme_text_color="Custom",
-            text_color=BLU_NOTTE,
-            font_style="Subtitle2"
-        ))
-
-        # --- Stato testuale leggibile ---
-        if stato == "🔴":
-            stato_txt = "Scaduto"
-            stato_color = (1, 0, 0, 1)  # rosso forte
-        elif stato == "🟡":
-            stato_txt = "In scadenza"
-            stato_color = (0.8, 0.55, 0, 1)  # giallo/ocra deciso
-        else:
-            stato_txt = "Regolare"
-            stato_color = BLU_NOTTE  # colore standard
-
-        col.add_widget(MDLabel(
-            text=f"Stato: {stato_txt}",
-            theme_text_color="Custom",
-            text_color=stato_color,
-            font_style="Subtitle2"
-        ))
-
+        col.add_widget(MDLabel(text=title, font_style="H6"))
+        col.add_widget(MDLabel(text=f"Ultimo: {ultimo}", theme_text_color="Secondary"))
+        col.add_widget(MDLabel(text=f"Prossimo: {prossimo}", theme_text_color="Secondary"))
+        col.add_widget(MDLabel(text=f"Stato: {stato}", theme_text_color="Secondary"))
 
         card.add_widget(icona)
         card.add_widget(col)
-        # --- Colore card in base allo stato ---
-        if stato == "🔴":
-            card.md_bg_color = (1, 0.85, 0.85, 1)   # rosino allerta
-        elif stato == "🟡":
-            card.md_bg_color = (1, 1, 0.85, 1)      # giallo chiaro
-        else:
-            card.md_bg_color = GRIGIO_CARD          # colore standard
 
         return card
 

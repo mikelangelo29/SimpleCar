@@ -6,18 +6,12 @@
             "targa": "",
             "km": 897456,
             "anno": "",
-            "scadenze": {
-                "revisione": {
-                    "ultimo": "12/12/2023",
-                    "prossimo": "12/12/2025",
-                    "stato": "\ud83d\udfe1"
-                }
-            },
+            "scadenze": {},
             "tacho_color": "blue",
-            "anno_imm": "",
+            "anno_imm": "01/03/2025",
             "revisione": {
-                "ultima": "12/12/2023",
-                "prossima": "12/12/2025"
+                "ultima": null,
+                "prossima": "[size=18]01/03/2029[/size]"
             }
         },
         {
