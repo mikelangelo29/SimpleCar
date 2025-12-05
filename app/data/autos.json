@@ -8,16 +8,22 @@
             "anno": "",
             "scadenze": {
                 "revisione": {
-                    "ultimo": "12/12/2023",
-                    "prossimo": "12/12/2025",
-                    "stato": "\ud83d\udfe1"
+                    "ultimo": "12/12/2022",
+                    "prossimo": "12/12/2024",
+                    "stato": "🔴"
                 }
             },
             "tacho_color": "blue",
             "anno_imm": "",
             "revisione": {
-                "ultima": "12/12/2023",
-                "prossima": "12/12/2025"
+                "ultima": "12/12/2022",
+                "prossima": "12/12/2024"
+            },
+            "gomme": {
+                "tipo": "doppio",
+                "intervallo": null,
+                "km_ultimo_cambio": 897456,
+                "data_montaggio": null
             }
         },
         {
@@ -26,8 +32,36 @@
             "targa": "",
             "km": 456112,
             "anno": "",
-            "scadenze": {},
-            "tacho_color": "purple"
+            "scadenze": {
+                "revisione": {
+                    "ultimo": "02/02/2024",
+                    "prossimo": "02/02/2026",
+                    "stato": "🟡"
+                }
+            },
+            "tacho_color": "purple",
+            "anno_imm": "",
+            "revisione": {
+                "ultima": "02/02/2024",
+                "prossima": "02/02/2026"
+            },
+            "gomme": {
+                "tipo": "4stagioni",
+                "intervallo": null,
+                "km_ultimo_cambio": 456112,
+                "data_montaggio": null,
+                "montate": null,
+                "estive": {
+                    "intervallo": null,
+                    "km_ultimo_cambio": null,
+                    "data_montaggio": null
+                },
+                "invernali": {
+                    "intervallo": null,
+                    "km_ultimo_cambio": null,
+                    "data_montaggio": null
+                }
+            }
         }
     ]
 }
