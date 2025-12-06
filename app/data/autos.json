@@ -23,7 +23,14 @@
                 "tipo": "doppio",
                 "intervallo": null,
                 "km_ultimo_cambio": 897456,
-                "data_montaggio": null
+                "data_montaggio": null,
+                "t1": {
+                    "km_montaggio": 111222
+                },
+                "attivo": "t1",
+                "t2": {
+                    "km_montaggio": null
+                }
             }
         },
         {
@@ -46,21 +53,17 @@
                 "prossima": "02/02/2026"
             },
             "gomme": {
-                "tipo": "4stagioni",
-                "intervallo": null,
-                "km_ultimo_cambio": 456112,
-                "data_montaggio": null,
-                "montate": null,
-                "estive": {
-                    "intervallo": null,
-                    "km_ultimo_cambio": null,
-                    "data_montaggio": null
+                "t1": {
+                    "km_montaggio": 44444000,
+                    "data_montaggio": null,
+                    "intervallo_km": null
                 },
-                "invernali": {
-                    "intervallo": null,
-                    "km_ultimo_cambio": null,
-                    "data_montaggio": null
-                }
+                "t2": {
+                    "km_montaggio": 44444444,
+                    "data_montaggio": null,
+                    "intervallo_km": 45000
+                },
+                "attivo": "t2"
             }
         }
     ]

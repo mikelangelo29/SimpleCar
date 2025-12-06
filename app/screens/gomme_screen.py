@@ -1,393 +1,536 @@
-import json
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
-from kivymd.uix.selectioncontrol import MDCheckbox
-from kivymd.uix.button import MDIconButton, MDRaisedButton
+from kivymd.uix.button import MDRaisedButton, MDIconButton
 from kivymd.uix.scrollview import MDScrollView
-from kivymd.uix.pickers import MDDatePicker
+from kivymd.uix.dialog import MDDialog
 
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
 from kivy.metrics import dp
 from kivy.utils import get_color_from_hex
 
+import json
+import os
 
-BLU_NOTTE = get_color_from_hex("0D1B2A")
+
+BLU = get_color_from_hex("0D1B2A")
+VERDE = (0.00, 0.42, 0.30, 1)
+ROSSO = (0.91, 0.26, 0.26, 1)
+PURPLE = (0.36, 0.29, 0.55, 1)
+
+CARD_ACTIVE = (0.92, 0.96, 1.00, 1)   # bianco-azzurro elegante
+CARD_INACTIVE = (0.96, 0.96, 0.96, 1) # grigio molto chiaro
+
+BORDO_ACTIVE = BLU
+
 
 
 class GommeScreen(MDScreen):
+    """Screen gestione gomme.
 
-    # ==========================================================
-    # INIT GOMME — crea struttura se manca
-    # ==========================================================
-    def init_gomme(self):
-        auto = self.current_auto
+    Prima di entrare:
+        gomme_screen = manager.get_screen("gomme")
+        gomme_screen.current_auto = self.auto
+    """
 
-        if "gomme" not in auto:
-            auto["gomme"] = {
-                "tipo": "4stagioni",
-                "intervallo": None,
-                "km_ultimo_cambio": None,
-                "data_montaggio": None,
-                "montate": None,
-                "estive": {
-                    "intervallo": None,
-                    "km_ultimo_cambio": None,
-                    "data_montaggio": None
-                },
-                "invernali": {
-                    "intervallo": None,
-                    "km_ultimo_cambio": None,
-                    "data_montaggio": None
-                }
-            }
-            self.save_json()
+    data_path = "app/data/autos.json"
 
-    # ==========================================================
-    # CALCOLI
-    # ==========================================================
-    def km_fatti(self, treno):
-        auto_km = self.current_auto.get("km", 0)
-        ultimo = treno.get("km_ultimo_cambio")
-        if ultimo is None:
-            return 0
-        return max(0, auto_km - ultimo)
+    # =========================================================
+    # CICLO DI VITA
+    # =========================================================
+    def on_pre_enter(self, *args):
+        self._ensure_structure()
+        self._build_ui()
+        self._load_values()
+        self._update_view()
 
-    def km_residui(self, treno):
-        intervallo = treno.get("intervallo")
-        if not intervallo:
-            return None
-        return intervallo - self.km_fatti(treno)
+    # =========================================================
+    # STRUTTURA BASE GOMME
+    # =========================================================
+    def _ensure_structure(self):
+        """Garantisce che current_auto abbia il blocco gomme
+        con almeno Treno 1 e un 'attivo' valido.
+        """
+        if not getattr(self, "current_auto", None):
+            return
 
-    def get_stato(self, residui):
-        if residui is None:
-            return "—"
-        if residui > 5000:
-            return "🟢 Regolare"
-        elif residui > 0:
-            return "🟡 In scadenza"
-        return "🔴 Da sostituire"
+        gomme = self.current_auto.get("gomme")
+        if not isinstance(gomme, dict):
+            gomme = {}
 
-    # ==========================================================
-    def on_pre_enter(self):
-        self.init_gomme()
-        self.build_ui()
+        # Treno 1 sempre presente
+        if "t1" not in gomme:
+            gomme["t1"] = {"km_montaggio": None}
 
-    # ==========================================================
-    def build_ui(self):
+        # Treno attivo
+        if gomme.get("attivo") not in ("t1", "t2"):
+            gomme["attivo"] = "t1"
 
+        self.current_auto["gomme"] = gomme
+        self._save_full()
+
+    # =========================================================
+    # COSTRUZIONE UI
+    # =========================================================
+    def _build_ui(self):
         self.clear_widgets()
-
-        auto = self.current_auto
-        gomme = auto["gomme"]
 
         root = FloatLayout()
         self.add_widget(root)
 
-        main = MDBoxLayout(
-            orientation="vertical",
-            size_hint=(1, 1),
-        )
+        main = MDBoxLayout(orientation="vertical")
         root.add_widget(main)
 
-        # TOP BAR
-        topbar = MDBoxLayout(
-            size_hint=(1, None),
+        # ---------- TOP BAR ----------
+        top = MDBoxLayout(
+            size_hint_y=None,
             height=dp(70),
             padding=[15, 15, 15, 15],
-            spacing=dp(15),
-            md_bg_color=BLU_NOTTE,
+            md_bg_color=BLU,
         )
-        btn_back = MDIconButton(
+        back = MDIconButton(
             icon="arrow-left",
-            theme_text_color="Custom",
+            theme_text_color="Custom", 
             text_color=(1, 1, 1, 1),
-            on_release=lambda x: self.go_back()
+            on_release=lambda x: self._go_back(),
         )
-        titolo = MDLabel(
-            text="Gomme",
-            theme_text_color="Custom",
-            text_color=(1, 1, 1, 1),
-            font_style="H5"
-        )
+        
+        top.add_widget(back)
+        
+        main.add_widget(top)
 
-        topbar.add_widget(btn_back)
-        topbar.add_widget(titolo)
-        main.add_widget(topbar)
-
+        # ---------- SCROLL ----------
         scroll = MDScrollView()
         main.add_widget(scroll)
 
         container = MDBoxLayout(
             orientation="vertical",
-            spacing=dp(25),
             padding=dp(20),
+            spacing=dp(20),
             size_hint_y=None,
         )
         container.bind(minimum_height=container.setter("height"))
         scroll.add_widget(container)
 
-        # TIPO SET
+        # ---------- TRENO 1 ----------
+        self.card_t1 = self._create_card("Treno 1", "t1")
+        container.add_widget(self.card_t1)
+
+        # ---------- TOGGLE TRENO 2 (AGGIUNGI / ELIMINA) ----------
+        self.btn_t2_toggle = MDRaisedButton(
+            text="+ AGGIUNGI TRENO 2",
+            md_bg_color=BLU,
+            text_color=(1, 1, 1, 1),
+            size_hint=(1, None),
+            height=dp(45),
+            on_release=lambda x: self._toggle_t2(),
+        )
+        container.add_widget(self.btn_t2_toggle)
+
+        # Card Treno 2 (inserita solo se esiste in dati)
+        self.card_t2 = self._create_card("Treno 2", "t2")
+
+        # ---------- SALVA ----------
+        self.btn_save = MDRaisedButton(
+            text="SALVA",
+            md_bg_color=BLU,
+            text_color=(1, 1, 1, 1),
+            size_hint=(1, None),
+            height=dp(48),
+            on_release=lambda x: self._save_values(),
+        )
+        container.add_widget(self.btn_save)
+
+        # ---------- "TACHIMETRO" KM AUTO + AGGIORNA ----------
+        tacho_row = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(10),
+            size_hint_y=None,
+            height=dp(80),
+        )
+
+        tacho_box = MDBoxLayout(
+            orientation="vertical",
+            padding=dp(10),
+            spacing=dp(4),
+            md_bg_color=(0.97, 0.97, 0.97, 1),
+        )
+        tacho_label = MDLabel(
+            text="Km attuali auto",
+            font_style="Caption",
+            halign="left",
+        )
+        self.lbl_master_value = MDLabel(
+            text="— km",
+            font_style="H5",
+            halign="left",
+        )
+        tacho_box.add_widget(tacho_label)
+        tacho_box.add_widget(self.lbl_master_value)
+        tacho_row.add_widget(tacho_box)
+
+        self.btn_update_km = MDRaisedButton(
+            text="AGGIORNA KM",
+            md_bg_color=(1, 1, 1, 1),
+            text_color=BLU,
+            size_hint=(None, None),
+            width=dp(140),
+            height=dp(48),
+            on_release=lambda x: self._popup_update_km(),
+        )
+        tacho_row.add_widget(self.btn_update_km)
+
+        container.add_widget(tacho_row)
+
+        # ---------- SWITCH T1 / T2 ----------
+        self.btn_switch = MDRaisedButton(
+            text="",
+            md_bg_color=BLU,
+            text_color=(1, 1, 1, 1),
+            size_hint=(1, None),
+            height=dp(46),
+            on_release=lambda x: self._switch_trains(),
+        )
+        self.btn_switch.opacity = 0
+        self.btn_switch.disabled = True
+        container.add_widget(self.btn_switch)
+
+        # ---------- FRASE ESPLICATIVA IN FONDO ----------
         container.add_widget(
             MDLabel(
-                text="TIPO DI SET",
-                font_style="H5",
-                bold=True,
+                text=(
+                    "Quando monti un treno, il conteggio dei suoi km "
+                    "parte dal chilometraggio attuale.\n"
+                    "Gli altri treni si fermano finché non li rimonti."
+                ),
+                font_style="Caption",
                 halign="left",
                 size_hint_y=None,
-                height=dp(48),
-                padding=[0, 10, 0, 10],
+                height=dp(50),
             )
         )
 
-        # SET UNICO
-        row1 = MDBoxLayout(size_hint_y=None, height=dp(40))
-        self.rb_unico = MDCheckbox(group="setg", active=gomme["tipo"] == "4stagioni")
-        row1.add_widget(MDLabel(text="Set unico (4 stagioni)", font_style="Body1"))
-        row1.add_widget(self.rb_unico)
-        container.add_widget(row1)
-
-        # DOPPIO
-        row2 = MDBoxLayout(size_hint_y=None, height=dp(40))
-        self.rb_doppio = MDCheckbox(group="setg", active=gomme["tipo"] == "doppio")
-        row2.add_widget(MDLabel(text="Doppio set (estive + invernali)", font_style="Body1"))
-        row2.add_widget(self.rb_doppio)
-        container.add_widget(row2)
-
-        self.rb_unico.bind(active=self.on_set_change)
-        self.rb_doppio.bind(active=self.on_set_change)
-
-        container.add_widget(
-            MDBoxLayout(size_hint_y=None, height=dp(1), md_bg_color=(0.85, 0.85, 0.85, 1))
-        )
-
-        # SEZIONI
-        self.sections_box = MDBoxLayout(
-            orientation="vertical",
-            spacing=dp(30),
-            size_hint_y=None,
-        )
-        self.sections_box.bind(minimum_height=self.sections_box.setter("height"))
-        container.add_widget(self.sections_box)
-
-        # Box
-        self.box_4s = self._create_box("Quattro stagioni")
-        self.box_est = self._create_box("Estive")
-        self.box_inv = self._create_box("Invernali")
-
-        if gomme["tipo"] == "4stagioni":
-            self.show_unico()
-        else:
-            self.show_doppio()
-
-        # SALVA
-        salva = MDRaisedButton(
-            text="SALVA",
-            md_bg_color=BLU_NOTTE,
-            pos_hint={"center_x": 0.5},
-            on_release=self.save
-        )
-        container.add_widget(salva)
-
+        # Icona overlay
         overlay = Image(
             source="app/assets/tyre.png",
             size_hint=(None, None),
-            height=dp(60),
             width=dp(60),
-            allow_stretch=True,
-            keep_ratio=True,
-            pos_hint={"right": 0.98, "y": 0.03}
+            height=dp(60),
+            pos_hint={"right": 0.98, "y": 0.02},
         )
         root.add_widget(overlay)
 
-    # ==========================================================
-    def _create_box(self, titolo):
-
+    # =========================================================
+    # CREAZIONE CARD TRENO
+    # =========================================================
+    def _create_card(self, title, key):
         box = MDBoxLayout(
             orientation="vertical",
-            spacing=dp(12),
-            padding=[0, 8, 0, 8],
+            padding=dp(15),
+            spacing=dp(10),
             size_hint_y=None,
+            md_bg_color=CARD_INACTIVE,
         )
         box.bind(minimum_height=box.setter("height"))
+        box.tr_key = key
 
-        box.add_widget(
-            MDLabel(
-                text=titolo.capitalize(),
-                font_style="H6",
-                bold=True,
-                halign="left",
-                size_hint_y=None,
-                height=dp(32),
-                padding=[0, 10, 0, 8],
-            )
-        )
+        header = MDBoxLayout(size_hint_y=None, height=dp(30))
+        lbl = MDLabel(text=title, font_style="H6", bold=True)
+        badge = MDLabel(text="", halign="right", font_style="Caption")
+        box.lbl_badge = badge
+        header.add_widget(lbl)
+        header.add_widget(badge)
+        box.add_widget(header)
 
-        # INTERVALLO
-        box.add_widget(MDLabel(
-            text="Scegli il tuo intervallo:",
-            font_style="Subtitle2",
+        box.km = MDTextField(
+            hint_text="Km al montaggio (obbligatorio)",
+            input_filter="int",
             size_hint_y=None,
-            height=dp(26)
-        ))
+            height=dp(48),
+        )
+        box.km.bind(text=self._km_changed)
+        box.add_widget(box.km)
 
-        km_row = MDBoxLayout(
+        box.lbl_percorsi = MDLabel(
+            text="Km percorsi: —",
+            font_style="Caption",
             size_hint_y=None,
-            height=dp(40),
-            spacing=dp(40)
+            height=dp(20),
         )
-
-        km35 = MDCheckbox(group=f"km_{titolo}")
-        km45 = MDCheckbox(group=f"km_{titolo}")
-        km50 = MDCheckbox(group=f"km_{titolo}")
-
-        km_row.add_widget(self._row(km35, "35000"))
-        km_row.add_widget(self._row(km45, "45000"))
-        km_row.add_widget(self._row(km50, "50000"))
-
-        box.km_opts = [km35, km45, km50]
-
-        box.add_widget(km_row)
-
-        # CAMPI CALCOLATI
-        box.label_fatti = MDLabel(
-            text="Km fatti: —",
-            font_style="Body2",
-            size_hint_y=None,
-            height=dp(22)
-        )
-        box.add_widget(box.label_fatti)
-
-        box.label_residui = MDLabel(
-            text="Km residui: —",
-            font_style="Body2",
-            size_hint_y=None,
-            height=dp(22)
-        )
-        box.add_widget(box.label_residui)
-
-        box.label_stato = MDLabel(
-            text="Stato: —",
-            font_style="Body2",
-            size_hint_y=None,
-            height=dp(22)
-        )
-        box.add_widget(box.label_stato)
-
-        box.add_widget(MDLabel(size_hint_y=None, height=dp(10)))
-
-        # DATA + PULSANTE MONTA
-        box.data = MDTextField(hint_text=f"Data montaggio {titolo}", readonly=True)
-        box.data.bind(on_focus=lambda inst, foc, d=box.data: foc and self.open_calendar(d))
-        box.add_widget(box.data)
-
-        btn_monta = MDRaisedButton(
-            text=f"MONTA {titolo.upper()}",
-            md_bg_color=BLU_NOTTE,
-            on_release=lambda x, t=titolo: self.monta_treno(t)
-        )
-        box.add_widget(btn_monta)
+        box.add_widget(box.lbl_percorsi)
 
         return box
 
-    # ==========================================================
-    def _row(self, check, text):
-        r = MDBoxLayout(
-            size_hint_y=None,
-            height=dp(40),
-            spacing=dp(12),
-        )
-        r.add_widget(check)
-        label = MDLabel(
-            text=text,
-            font_size="14sp",
-            halign="left",
-            size_hint_x=None,
-            width=dp(56)
-        )
-        r.add_widget(label)
-        return r
+    # =========================================================
+    # CARICAMENTO VALORI
+    # =========================================================
+    def _load_values(self):
+        gomme = self.current_auto.get("gomme", {})
+        km_master = self.current_auto.get("km", 0)
+        self.lbl_master_value.text = f"{km_master} km"
 
-    # ==========================================================
-    # SET UNICO / DOPPIO
-    # ==========================================================
-    def on_set_change(self, inst, val):
-        if inst is self.rb_unico and val:
-            self.current_auto["gomme"]["tipo"] = "4stagioni"
-            self.save_json()
-            self.show_unico()
-        elif inst is self.rb_doppio and val:
-            self.current_auto["gomme"]["tipo"] = "doppio"
-            self.save_json()
-            self.show_doppio()
+        # Treno 1
+        t1 = gomme.get("t1", {})
+        if t1.get("km_montaggio") is not None:
+            self.card_t1.km.text = str(t1["km_montaggio"])
 
-    def show_unico(self):
-        self.sections_box.clear_widgets()
-        self.sections_box.add_widget(self.box_4s)
+        # Treno 2
+        if "t2" in gomme:
+            parent = self.btn_t2_toggle.parent
+            if self.card_t2 not in parent.children:
+                idx = parent.children.index(self.btn_t2_toggle)
+                parent.add_widget(self.card_t2, index=idx)
 
-    def show_doppio(self):
-        self.sections_box.clear_widgets()
-        self.sections_box.add_widget(self.box_est)
-        self.sections_box.add_widget(self.box_inv)
+            t2 = gomme.get("t2", {})
+            if t2.get("km_montaggio") is not None:
+                self.card_t2.km.text = str(t2["km_montaggio"])
 
-    # ==========================================================
-    def open_calendar(self, field):
-        self._field = field
-        picker = MDDatePicker()
-        picker.bind(on_save=self.set_date)
-        picker.open()
-
-    def set_date(self, inst, value, date_range):
-        self._field.text = value.strftime("%d/%m/%Y")
-
-    # ==========================================================
-    def monta_treno(self, titolo):
-
-        auto = self.current_auto
-        gomme = auto["gomme"]
-        km_auto = auto.get("km", 0)
-
-        if gomme["tipo"] == "4stagioni":
-            gomme["km_ultimo_cambio"] = km_auto
-            gomme["data_montaggio"] = None
+            # ← QUI: COLORE ROSSO
+            self.btn_t2_toggle.text = "- ELIMINA TRENO 2"
+            self.btn_t2_toggle.md_bg_color = ROSSO
 
         else:
-            if titolo.lower() == "estive":
-                gomme["montate"] = "estive"
-                gomme["estive"]["km_ultimo_cambio"] = km_auto
+            # ← QUI: COLORE VERDE SMERALDO
+            self.btn_t2_toggle.text = "+ AGGIUNGI TRENO 2"
+            self.btn_t2_toggle.md_bg_color = VERDE
+
+    # =========================================================
+    # AGGIORNAMENTO GRAFICA E CALCOLI
+    # =========================================================
+    def _update_view(self):
+        gomme = self.current_auto.get("gomme", {})
+        attivo = gomme.get("attivo", "t1")
+        km_master = self.current_auto.get("km", 0)
+
+        # ----------------------------------------------------------
+        # Calcolo km percorsi per ogni treno
+        # ----------------------------------------------------------
+        def fill(box):
+            txt = box.km.text.strip()
+            if not txt.isdigit():
+                box.lbl_percorsi.text = "Km percorsi: —"
+                return
+            km_m = int(txt)
+            box.lbl_percorsi.text = f"Km percorsi: {max(0, km_master - km_m)}"
+
+        fill(self.card_t1)
+        if "t2" in gomme:
+            fill(self.card_t2)
+
+        # ----------------------------------------------------------
+        # Evidenziazione treno montato
+        # ----------------------------------------------------------
+
+        if attivo == "t1":
+            # Treno 1 attivo
+            self.card_t1.md_bg_color = CARD_ACTIVE
+            self.card_t1.line_color = BORDO_ACTIVE   # blu notte
+            self.card_t1.line_width = 2
+            self.card_t1.lbl_badge.text = "MONTATO ORA"
+
+            # Treno 2 inattivo
+            if hasattr(self, "card_t2"):
+                self.card_t2.md_bg_color = CARD_INACTIVE
+                self.card_t2.line_color = (0, 0, 0, 0)  # bordo invisibile
+                self.card_t2.lbl_badge.text = ""
+
+        else:
+            # Treno 2 attivo
+            if hasattr(self, "card_t2"):
+                self.card_t2.md_bg_color = CARD_ACTIVE
+                self.card_t2.line_color = BORDO_ACTIVE   # blu notte
+                self.card_t2.line_width = 2
+                self.card_t2.lbl_badge.text = "MONTATO ORA"
+
+            # Treno 1 inattivo
+            self.card_t1.md_bg_color = CARD_INACTIVE
+            self.card_t1.line_color = (0, 0, 0, 0)
+            self.card_t1.lbl_badge.text = ""
+
+
+
+        # ----------------------------------------------------------
+        # Switch attivo solo se esiste T2
+        # ----------------------------------------------------------
+        if "t2" in gomme:
+            self.btn_switch.disabled = False
+            self.btn_switch.opacity = 1
+
+            if attivo == "t1":
+                self.btn_switch.text = "SMONTA T1 → MONTA T2"
             else:
-                gomme["montate"] = "invernali"
-                gomme["invernali"]["km_ultimo_cambio"] = km_auto
+                self.btn_switch.text = "SMONTA T2 → MONTA T1"
 
-        self.save_json()
-        self.build_ui()
+            # ⭐ COLORE PERSONALIZZATO DEL BOTTONE SMONTA/MONTA
+            self.btn_switch.md_bg_color = PURPLE
 
-    # ==========================================================
-    def save(self, *args):
-        self.save_json()
-        self.build_ui()
+        else:
+            self.btn_switch.disabled = True
+            self.btn_switch.opacity = 0
 
-    # ==========================================================
-    def save_json(self):
-        path = "app/data/autos.json"
 
-        with open(path, "r", encoding="utf-8") as f:
+    def _km_changed(self, instance, value):
+        """Aggiorna i km percorsi live mentre digiti."""
+        self._update_view()
+
+    # =========================================================
+    # AZIONI UTENTE
+    # =========================================================
+
+    def _toggle_t2(self):
+        gomme = self.current_auto.get("gomme", {})
+        parent = self.btn_t2_toggle.parent
+
+        if "t2" in gomme:
+            # --------- ELIMINA TRENO 2 ----------
+            gomme.pop("t2", None)
+
+            if self.card_t2 in parent.children:
+                parent.remove_widget(self.card_t2)
+
+            # Se stava montato T2 torna T1
+            if gomme.get("attivo") == "t2":
+                gomme["attivo"] = "t1"
+
+            self.btn_t2_toggle.text = "+ AGGIUNGI TRENO 2"
+            self.btn_t2_toggle.md_bg_color = VERDE
+
+        else:
+            # --------- AGGIUNGI TRENO 2 ----------
+            gomme["t2"] = {"km_montaggio": None}
+
+            if self.card_t2 not in parent.children:
+                idx = parent.children.index(self.btn_t2_toggle)
+                parent.add_widget(self.card_t2, index=idx)
+
+            self.btn_t2_toggle.text = "- ELIMINA TRENO 2"
+            self.btn_t2_toggle.md_bg_color = ROSSO
+
+        self.current_auto["gomme"] = gomme
+        self._save_full()
+        self._update_view()
+
+
+    def _switch_trains(self):
+        """Cambia il treno montato (T1 ↔ T2)."""
+        gomme = self.current_auto.get("gomme", {})
+        attivo = gomme.get("attivo", "t1")
+        if "t2" not in gomme:
+            return
+
+        self._show("Ricorda: aggiorna i km dell'auto prima di cambiare treno.")
+
+        gomme["attivo"] = "t2" if attivo == "t1" else "t1"
+        self.current_auto["gomme"] = gomme
+        self._save_full()
+        self._update_view()
+
+    def _save_values(self):
+        """Salva i km di montaggio per T1 e T2."""
+        gomme = self.current_auto.get("gomme", {})
+
+        # T1 obbligatorio
+        km1_txt = self.card_t1.km.text.strip()
+        if not km1_txt.isdigit():
+            self._show("Inserisci i km del Treno 1.")
+            return
+        gomme.setdefault("t1", {})["km_montaggio"] = int(km1_txt)
+
+        # T2 opzionale
+        if "t2" in gomme:
+            km2_txt = self.card_t2.km.text.strip()
+            if km2_txt:
+                if not km2_txt.isdigit():
+                    self._show("I km del Treno 2 devono essere numerici.")
+                    return
+                gomme["t2"]["km_montaggio"] = int(km2_txt)
+
+        self.current_auto["gomme"] = gomme
+        self._save_full()
+        self._update_view()
+        self._show("Dati salvati.")
+
+    def _popup_update_km(self):
+        """Popup per aggiornare il chilometraggio master dell'auto."""
+        dialog = None
+        field = MDTextField(
+            hint_text="Km attuali",
+            input_filter="int",
+            size_hint_y=None,
+            height=dp(48),
+        )
+
+        def save_new_km(x):
+            txt = field.text.strip()
+            if not txt.isdigit():
+                self._show("Inserisci un valore numerico.")
+                return
+            self.current_auto["km"] = int(txt)
+            self._save_full()
+            self._load_values()
+            self._update_view()
+            dialog.dismiss()
+
+        dialog = MDDialog(
+            title="Aggiorna chilometri",
+            type="custom",
+            content_cls=field,
+            buttons=[
+                MDRaisedButton(
+                    text="ANNULLA",
+                    on_release=lambda x: dialog.dismiss(),
+                ),
+                MDRaisedButton(
+                    text="OK",
+                    md_bg_color=BLU,
+                    on_release=save_new_km,
+                ),
+            ],
+        )
+        dialog.open()
+
+    # =========================================================
+    # PERSISTENZA
+    # =========================================================
+    def _save_full(self):
+        """Salva current_auto dentro autos.json."""
+        if not os.path.exists(self.data_path):
+            return
+
+        with open(self.data_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         autos = data.get("autos", [])
-
-        # Trova l’auto corrente nel JSON
-        for idx, a in enumerate(autos):
-            if a["modello"] == self.current_auto["modello"] and a["targa"] == self.current_auto["targa"]:
-                autos[idx] = self.current_auto
+        for a in autos:
+            if (
+                a.get("marca") == self.current_auto.get("marca")
+                and a.get("modello") == self.current_auto.get("modello")
+                and a.get("targa") == self.current_auto.get("targa")
+            ):
+                a.update(self.current_auto)
                 break
 
-        with open(path, "w", encoding="utf-8") as f:
+        with open(self.data_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
 
-    # ==========================================================
-    def go_back(self):
-        self.manager.current = "detail_auto"
+    # =========================================================
+    # UTILITY
+    # =========================================================
+    def _show(self, msg):
+        dialog = MDDialog(
+            title="Gomme",
+            text=msg,
+            buttons=[
+                MDRaisedButton(
+                    text="OK",
+                    md_bg_color=BLU,
+                    on_release=lambda x: dialog.dismiss(),
+                )
+            ],
+        )
+        dialog.open()
 
+    def _go_back(self):
+        self.manager.current = "detail_auto"
