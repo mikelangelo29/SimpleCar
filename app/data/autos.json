@@ -11,6 +11,12 @@
                     "ultimo": "12/12/2022",
                     "prossimo": "12/12/2024",
                     "stato": "🔴"
+                },
+                "gomme": {
+                    "treno": "T2",
+                    "km_percorsi": 39456,
+                    "km_residui": 5544,
+                    "stato": "🟡"
                 }
             },
             "tacho_color": "blue",
@@ -25,12 +31,9 @@
                 "km_ultimo_cambio": 897456,
                 "data_montaggio": null,
                 "t1": {
-                    "km_montaggio": 111222
+                    "km_montaggio": 853000
                 },
-                "attivo": "t1",
-                "t2": {
-                    "km_montaggio": null
-                }
+                "attivo": "t1"
             }
         },
         {

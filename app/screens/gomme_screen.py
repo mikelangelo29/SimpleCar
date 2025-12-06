@@ -22,7 +22,7 @@ PURPLE = (0.36, 0.29, 0.55, 1)
 
 CARD_ACTIVE = (0.92, 0.96, 1.00, 1)   # bianco-azzurro elegante
 CARD_INACTIVE = (0.96, 0.96, 0.96, 1) # grigio molto chiaro
-
+AZZURRO_GLACIALE = (0.94, 0.97, 1.00, 1)  # #F0F6FF
 BORDO_ACTIVE = BLU
 
 
@@ -132,59 +132,7 @@ class GommeScreen(MDScreen):
         # Card Treno 2 (inserita solo se esiste in dati)
         self.card_t2 = self._create_card("Treno 2", "t2")
 
-        # ---------- SALVA ----------
-        self.btn_save = MDRaisedButton(
-            text="SALVA",
-            md_bg_color=BLU,
-            text_color=(1, 1, 1, 1),
-            size_hint=(1, None),
-            height=dp(48),
-            on_release=lambda x: self._save_values(),
-        )
-        container.add_widget(self.btn_save)
-
-        # ---------- "TACHIMETRO" KM AUTO + AGGIORNA ----------
-        tacho_row = MDBoxLayout(
-            orientation="horizontal",
-            spacing=dp(10),
-            size_hint_y=None,
-            height=dp(80),
-        )
-
-        tacho_box = MDBoxLayout(
-            orientation="vertical",
-            padding=dp(10),
-            spacing=dp(4),
-            md_bg_color=(0.97, 0.97, 0.97, 1),
-        )
-        tacho_label = MDLabel(
-            text="Km attuali auto",
-            font_style="Caption",
-            halign="left",
-        )
-        self.lbl_master_value = MDLabel(
-            text="— km",
-            font_style="H5",
-            halign="left",
-        )
-        tacho_box.add_widget(tacho_label)
-        tacho_box.add_widget(self.lbl_master_value)
-        tacho_row.add_widget(tacho_box)
-
-        self.btn_update_km = MDRaisedButton(
-            text="AGGIORNA KM",
-            md_bg_color=(1, 1, 1, 1),
-            text_color=BLU,
-            size_hint=(None, None),
-            width=dp(140),
-            height=dp(48),
-            on_release=lambda x: self._popup_update_km(),
-        )
-        tacho_row.add_widget(self.btn_update_km)
-
-        container.add_widget(tacho_row)
-
-        # ---------- SWITCH T1 / T2 ----------
+    # ---------- SWITCH T1 / T2 ----------
         self.btn_switch = MDRaisedButton(
             text="",
             md_bg_color=BLU,
@@ -197,20 +145,85 @@ class GommeScreen(MDScreen):
         self.btn_switch.disabled = True
         container.add_widget(self.btn_switch)
 
-        # ---------- FRASE ESPLICATIVA IN FONDO ----------
-        container.add_widget(
-            MDLabel(
-                text=(
-                    "Quando monti un treno, il conteggio dei suoi km "
-                    "parte dal chilometraggio attuale.\n"
-                    "Gli altri treni si fermano finché non li rimonti."
-                ),
-                font_style="Caption",
-                halign="left",
-                size_hint_y=None,
-                height=dp(50),
-            )
+
+
+
+
+        # ---------- KM ATTUALI AUTO (WIDGET PREMIUM) ----------
+        tacho_row = MDBoxLayout(
+            orientation="horizontal",
+            spacing=dp(14),
+            size_hint_y=None,
+            height=dp(95),
         )
+
+        km_box = MDBoxLayout(
+            orientation="vertical",
+            padding=dp(12),
+            spacing=dp(6),
+            size_hint=(None, None),
+            width=dp(180),
+            height=dp(95),
+            md_bg_color=AZZURRO_GLACIALE,
+            radius=[14, 14, 14, 14],
+            line_color=BLU,
+            line_width=2,
+        )
+
+        label_caption = MDLabel(
+            text="Km attuali auto",
+            font_style="Caption",
+            theme_text_color="Custom",
+            text_color=(0.32, 0.32, 0.32, 1),
+            halign="left",
+            size_hint_y=None,
+            height=dp(18),
+        )
+
+        self.lbl_master_value = MDLabel(
+            text="— km",
+            font_style="H5",
+            bold=True,
+            halign="left",
+        )
+
+        km_box.add_widget(label_caption)
+        km_box.add_widget(self.lbl_master_value)
+        tacho_row.add_widget(km_box)
+
+        self.btn_update_km = MDRaisedButton(
+            text="AGGIORNA KM",
+            md_bg_color=(1, 1, 1, 1),
+            text_color=BLU,
+            elevation=6,
+            size_hint=(None, None),
+            width=dp(150),
+            height=dp(48),
+            on_release=lambda x: self._popup_update_km(),
+        )
+
+        tacho_row.add_widget(self.btn_update_km)
+        container.add_widget(tacho_row)
+
+
+        # ---------- FRASE ESPLICATIVA IN FONDO ----------
+        # ---------- FRASE ESPLICATIVA IN FONDO ----------
+        nota = MDLabel(
+            text=(
+                "Quando monti un treno, il conteggio dei suoi km "
+                "parte dal chilometraggio attuale.\n"
+                "Gli altri treni si fermano finché non li rimonti."
+            ),
+            font_style="Caption",
+            halign="center",
+            italic=True,
+            theme_text_color="Secondary",
+            size_hint_y=None,
+            height=dp(55),
+        )
+
+        container.add_widget(nota)
+
 
         # Icona overlay
         overlay = Image(
@@ -221,6 +234,17 @@ class GommeScreen(MDScreen):
             pos_hint={"right": 0.98, "y": 0.02},
         )
         root.add_widget(overlay)
+
+        # ---------- SALVA ----------
+        self.btn_save = MDRaisedButton(
+            text="SALVA",
+            md_bg_color=BLU,
+            text_color=(1, 1, 1, 1),
+            size_hint=(1, None),
+            height=dp(48),
+            on_release=lambda x: self._save_values(),
+        )
+        container.add_widget(self.btn_save)
 
     # =========================================================
     # CREAZIONE CARD TRENO
@@ -427,30 +451,82 @@ class GommeScreen(MDScreen):
         self._save_full()
         self._update_view()
 
+       # ---------------------------------------------------------
+    # SALVATAGGIO GOMME + SCADENZE
+    # ---------------------------------------------------------
     def _save_values(self):
-        """Salva i km di montaggio per T1 e T2."""
-        gomme = self.current_auto.get("gomme", {})
 
-        # T1 obbligatorio
-        km1_txt = self.card_t1.km.text.strip()
-        if not km1_txt.isdigit():
-            self._show("Inserisci i km del Treno 1.")
-            return
-        gomme.setdefault("t1", {})["km_montaggio"] = int(km1_txt)
+        auto = self.current_auto
+        gomme = auto.setdefault("gomme", {})
 
-        # T2 opzionale
-        if "t2" in gomme:
-            km2_txt = self.card_t2.km.text.strip()
-            if km2_txt:
-                if not km2_txt.isdigit():
-                    self._show("I km del Treno 2 devono essere numerici.")
-                    return
-                gomme["t2"]["km_montaggio"] = int(km2_txt)
+        # Treno attivo (t1 o t2)
+        attivo = gomme.get("attivo", "t1")
+        t = gomme.setdefault(attivo, {})
 
-        self.current_auto["gomme"] = gomme
-        self._save_full()
-        self._update_view()
-        self._show("Dati salvati.")
+        # Km generale dell’auto
+        km_master = auto.get("km", 0)
+
+        # Km montaggio (presi dalla GUI)
+        txt = self.card_t1.km.text.strip() if attivo == "t1" else self.card_t2.km.text.strip()
+        if not txt.isdigit():
+            # Nessun km montaggio → impossibile calcolare
+            km_montaggio = None
+        else:
+            km_montaggio = int(txt)
+
+        # Salva km montaggio nel JSON gomme (T1 o T2)
+        t["km_montaggio"] = km_montaggio
+
+        # ---- CALCOLI ----
+        INTERVALLO = 45000
+
+        if km_montaggio is None:
+            km_percorsi = None
+            km_residui = None
+            stato = "⚪"
+        else:
+            km_percorsi = max(0, km_master - km_montaggio)
+            km_residui = max(0, INTERVALLO - km_percorsi)
+
+            if km_percorsi >= 45000:
+                stato = "🔴"
+            elif km_percorsi >= 38000:
+                stato = "🟡"
+            else:
+                stato = "⚪"
+
+        # ---- SCRITTURA NELLA SEZIONE SCADENZE ----
+        scad = auto.setdefault("scadenze", {})
+        scad["gomme"] = {
+            "treno": attivo.upper().replace("T", "T"),
+            "km_percorsi": km_percorsi if km_percorsi is not None else "—",
+            "km_residui": km_residui if km_residui is not None else "—",
+            "stato": stato
+        }
+
+        # ---- SALVATAGGIO FINALE autos.json ----
+        # Deve seguire la stessa logica di detail_auto_screen e mycars_screen
+        # ---- SALVATAGGIO FINALE autos.json ----
+        import json, os
+
+        data_path = os.path.join("app", "data", "autos.json")
+
+        # Carica JSON
+        with open(data_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # Aggiorna l'auto corretta usando l’indice passato da DetailAuto
+        idx = self.current_auto_index
+        data["autos"][idx] = auto
+
+        # Risalva su disco
+        with open(data_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+
+        # Torna alla schermata DetailAuto
+        self.manager.current = "detail_auto"
+
 
     def _popup_update_km(self):
         """Popup per aggiornare il chilometraggio master dell'auto."""

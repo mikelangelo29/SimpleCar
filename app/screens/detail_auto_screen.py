@@ -283,21 +283,47 @@ class DetailAutoScreen(MDScreen):
             text_color=BLU_NOTTE
         ))
 
-        # Ultimo
-        col.add_widget(MDLabel(
-            text=f"Ultimo: {ultimo}",
-            theme_text_color="Custom",
-            text_color=BLU_NOTTE,
-            font_style="Subtitle2"
-        ))
+        # --- CONTENUTO SPECIFICO PER GOMME O ALTRO ---
+        if key == "gomme":
+            treno = sc.get("treno", "—")
+            km_percorsi = sc.get("km_percorsi", "—")
+            km_residui = sc.get("km_residui", "—")
 
-        # Prossimo / Prossima
-        col.add_widget(MDLabel(
-            text=f"{label_prossimo}: {prossimo}",
-            theme_text_color="Custom",
-            text_color=BLU_NOTTE,
-            font_style="Subtitle2"
-        ))
+            col.add_widget(MDLabel(
+                text=f"Treno montato: {treno}",
+                theme_text_color="Custom",
+                text_color=BLU_NOTTE,
+                font_style="Subtitle2"
+            ))
+            col.add_widget(MDLabel(
+                text=f"Km percorsi: {km_percorsi}",
+                theme_text_color="Custom",
+                text_color=BLU_NOTTE,
+                font_style="Subtitle2"
+            ))
+            col.add_widget(MDLabel(
+                text=f"Km residui: {km_residui}",
+                theme_text_color="Custom",
+                text_color=BLU_NOTTE,
+                font_style="Subtitle2"
+            ))
+
+        else:
+            # Ultimo
+            col.add_widget(MDLabel(
+                text=f"Ultimo: {ultimo}",
+                theme_text_color="Custom",
+                text_color=BLU_NOTTE,
+                font_style="Subtitle2"
+            ))
+
+            # Prossimo / Prossima
+            col.add_widget(MDLabel(
+                text=f"{label_prossimo}: {prossimo}",
+                theme_text_color="Custom",
+                text_color=BLU_NOTTE,
+                font_style="Subtitle2"
+            ))
 
         # --- Stato testuale leggibile ---
         if stato == "🔴":
@@ -335,11 +361,15 @@ class DetailAutoScreen(MDScreen):
     # ---------------------------------------------------------
     def open_item(self, key):
         if key == "gomme":
-            self.manager.get_screen("gomme").current_auto = self.auto
+            gs = self.manager.get_screen("gomme")
+            gs.current_auto = self.auto
+            gs.current_auto_index = self.selected_index
             self.manager.current = "gomme"
+
         elif key == "revisione":
             rev_screen = self.manager.get_screen("revisione")
             rev_screen.current_auto = self.auto
+            rev_screen.current_auto_index = self.selected_index
             self.manager.current = "revisione"
 
     
