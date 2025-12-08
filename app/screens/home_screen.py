@@ -33,7 +33,7 @@ class HomeScreen(MDScreen):
         logo = Image(
             source="app/assets/logo_home.png",
             size_hint=(1, None),
-            height=dp(150),
+            height=dp(220),
             keep_ratio=True,
             allow_stretch=True
         )
@@ -58,7 +58,7 @@ class HomeScreen(MDScreen):
         root.add_widget(payoff)
 
         # SPAZIO FISSO 50dp
-        root.add_widget(MDBoxLayout(size_hint=(1, None), height=dp(20)))
+        root.add_widget(MDBoxLayout(size_hint=(1, None), height=dp(10)))
 
         # --------------------------
         # BOTTONE
@@ -69,8 +69,8 @@ class HomeScreen(MDScreen):
             text_color=(1, 1, 1, 1),
             size_hint=(None, None),
             height=dp(60),            # un po' più alto
-            padding=(dp(55), dp(14)), # <-- qui si allarga davvero
-            font_size="17sp",         # leggermente più grande
+            padding=(dp(75), dp(18)), # <-- qui si allarga davvero
+            font_size="18sp",         # leggermente più grande
             elevation=3,
             pos_hint={"center_x": 0.5}
         )
@@ -82,7 +82,7 @@ class HomeScreen(MDScreen):
 
 
         # SPAZIO FISSO 70dp
-        root.add_widget(MDBoxLayout(size_hint=(1, None), height=dp(70)))
+        root.add_widget(MDBoxLayout(size_hint=(1, None), height=dp(30)))
 
         # --------------------------
         # STRADA
@@ -90,16 +90,49 @@ class HomeScreen(MDScreen):
         strada = Image(
             source="app/assets/strada_s.png",
             size_hint=(1, None),
-            height=dp(230),
+            height=dp(260),
             keep_ratio=True,
             allow_stretch=True
         )
-        root.add_widget(strada)
+        strada_anchor = MDAnchorLayout(anchor_y="bottom")
+        strada_anchor.add_widget(strada)
+        root.add_widget(strada_anchor)
+                # -----
+       # ---------- FRAME CON BORDO ----------
+        frame = MDBoxLayout(
+            orientation="vertical",
+            padding=dp(12),      # distanza bordo-contenuto
+        )
 
-        # -----
-        self.add_widget(root)
+        # Disegno del bordo blu notte
+        with frame.canvas.before:
+            from kivy.graphics import Color, Line
+            Color(13/255, 27/255, 42/255, 1)  # BLU NOTTE
+            self.frame_border = Line(rounded_rectangle=(0, 0, 0, 0, 20), width=1.4)
+
+        # aggiorna la cornice ogni volta che cambia la finestra
+        frame.bind(pos=self._update_border, size=self._update_border)
+
+        # Inseriamo root dentro frame
+        frame.add_widget(root)
+
+        # Aggiungiamo frame alla Home
+        self.add_widget(frame)
 
 
     def _update_bg(self, *args):
         self.bg.pos = self.pos
         self.bg.size = self.size
+
+    def _update_border(self, *args):
+        # margine dal bordo finestra
+        offset = 10
+
+        x = self.x + offset
+        y = self.y + offset
+        w = self.width - offset * 2
+        h = self.height - offset * 2
+
+        # radius 20 = bordi arrotondati più eleganti
+        self.frame_border.rounded_rectangle = (x, y, w, h, 20)
+

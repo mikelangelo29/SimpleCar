@@ -1,8 +1,8 @@
 {
     "autos": [
         {
-            "marca": "",
-            "modello": "dfsfd",
+            "marca": "Opel",
+            "modello": "Astra",
             "targa": "",
             "km": 897456,
             "anno": "",
@@ -33,7 +33,10 @@
                 "t1": {
                     "km_montaggio": 853000
                 },
-                "attivo": "t1"
+                "attivo": "t1",
+                "t2": {
+                    "km_montaggio": null
+                }
             }
         },
         {

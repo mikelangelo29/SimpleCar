@@ -8,6 +8,7 @@ from kivy.uix.image import Image
 from kivy.metrics import dp
 from kivymd.uix.dialog import MDDialog
 from datetime import datetime, timedelta
+from kivymd.uix.card import MDCard
 
 
 class RevisioneScreen(Screen):
@@ -32,33 +33,48 @@ class RevisioneScreen(Screen):
         content.bind(minimum_height=content.setter("height"))
         root.add_widget(content)
 
-        # ---------- TITOLO ----------
-        title_row = MDBoxLayout(
-            orientation="horizontal",
+        # ---------- TOP BAR ----------
+        top = MDBoxLayout(
             size_hint_y=None,
-            height=dp(50),
+            height=dp(80),   # identico a Gomme
+            padding=[20, 20, 20, 20],
+            md_bg_color=(0.05, 0.1, 0.2, 1),  # BLU NOTTE
         )
 
+        # Pulsante indietro
+        back = MDIconButton(
+            icon="arrow-left",
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1),
+            icon_size=dp(34),
+            on_release=lambda x: self.go_back(),
+        )
+        top.add_widget(back)
+
+        # Titolo centrale
         title = MDLabel(
             text="Revisione",
             halign="center",
             valign="middle",
+            bold=True,
             font_style="H4",
             theme_text_color="Custom",
-            text_color=(0.05, 0.1, 0.2, 1),
+            text_color=(1, 1, 1, 1),
         )
+        top.add_widget(title)
 
+        # Icona info a destra
         info_icon = MDIconButton(
             icon="information-outline",
             theme_text_color="Custom",
-            text_color=(0.05, 0.1, 0.2, 1),
-            icon_size=dp(22),
+            text_color=(1, 1, 1, 1),
+            icon_size=dp(28),
             on_release=lambda x: self.show_info()
         )
+        top.add_widget(info_icon)
 
-        title_row.add_widget(title)
-        title_row.add_widget(info_icon)
-        content.add_widget(title_row)
+        content.add_widget(top)
+
 
         # ---------- IMMAGINE ----------
         image_box = MDBoxLayout(size_hint_y=None, height=dp(140))
@@ -66,8 +82,8 @@ class RevisioneScreen(Screen):
             img = Image(
                 source="app/assets/icons/revisione.png",
                 size_hint=(None, None),
-                width=dp(120),
-                height=dp(120),
+                width=dp(150),
+                height=dp(150),
                 allow_stretch=True,
                 keep_ratio=True,
             )
@@ -94,15 +110,25 @@ class RevisioneScreen(Screen):
             prossima_str = rev.get("prossima", "—")
 
         # ---------- CARD ----------
-        card = MDBoxLayout(
+        # ---------- CARD ----------
+        card = MDCard(
             orientation="vertical",
             spacing=dp(14),
             padding=dp(16),
-            md_bg_color=(1, 1, 1, 1),
             radius=[20, 20, 20, 20],
-            size_hint_y=None
+
+            # Sfondo più luminoso (tipo tacho gomme)
+            md_bg_color=(0.94, 0.97, 1.00, 1),
+
+            # ⭐ Bordo BLU NOTTE vero, non grigio
+            line_color=(0.05, 0.1, 0.2, 1),
+            line_width=dp(1.4),
+
+            elevation=0,         # niente ombra, solo contorno
+            size_hint_y=None,
         )
         card.bind(minimum_height=card.setter("height"))
+
 
         # --- Campo data immatricolazione ---
         self.field_anno = MDTextField(

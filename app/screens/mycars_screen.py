@@ -175,7 +175,7 @@ class MyCarsScreen(MDScreen):
                 height=dp(360),
                 style="outlined",
                 line_color=BLU_NOTTE,
-                line_width=0.8,
+                line_width=1.4,
             )
 
             # ---------- HEADER ----------
@@ -188,10 +188,13 @@ class MyCarsScreen(MDScreen):
             )
 
             title_label = MDLabel(
-                text=titolo,
-                font_style="H5",
+                text=titolo.upper(),
+                font_style="H4",              # 🔥 più grande e più evidente
                 halign="left",
                 valign="middle",
+                bold=True,                    # 🔥 peso visivo maggiorato
+                theme_text_color="Custom",
+                text_color=BLU_NOTTE,         # 🔥 colore del brand EasyAuto
             )
 
             details_icon = MDIcon(
@@ -262,13 +265,15 @@ class MyCarsScreen(MDScreen):
             card.add_widget(MDWidget(size_hint_y=None, height=dp(12)))
 
             # ---------- BOTTONI ----------
+            # ---------- BOTTONI ----------
             buttons = MDBoxLayout(
                 orientation="vertical",
                 spacing=dp(10),
                 size_hint_y=None,
-                height=dp(120),
+                height=dp(150),
             )
 
+            # --- Pulsante principale a tutta larghezza ---
             update_btn = MDRaisedButton(
                 text="Aggiorna KM",
                 md_bg_color=AZZURRO,
@@ -279,21 +284,42 @@ class MyCarsScreen(MDScreen):
                 on_release=lambda x, auto=auto: self.open_update_km_dialog(auto["km"]),
             )
 
+            buttons.add_widget(update_btn)
+
+            # --- Seconda riga: Modifica + Elimina ---
+            second_row = MDBoxLayout(
+                orientation="horizontal",
+                spacing=dp(10),
+                size_hint_y=None,
+                height=dp(45),
+            )
+
+            edit_btn = MDRaisedButton(
+                text="Modifica Auto",
+                md_bg_color=BLU_NOTTE,
+                text_color=(1, 1, 1, 1),
+                elevation=0,
+                size_hint=(1, None),
+                on_release=lambda x, a=auto, i=i: self.open_edit_popup(a, i)
+            )
+
             delete_btn = MDRaisedButton(
                 text="Elimina Auto",
-                md_bg_color=(1, 0.23, 0.25, 1),    # Rosso Instagram
-                text_color=(1, 1, 1, 1),           # Testo bianco
-                elevation=0,                       # Nessun rilievo stile Instagram
-                ripple_color=(0.8, 0, 0.1, 1),     # Ripple rosso scuro pieno
+                md_bg_color=(0.80, 0.18, 0.23, 1),    # Rosso Instagram
+                text_color=(1, 1, 1, 1),
+                elevation=0,
+                ripple_color=(0.8, 0, 0.1, 1),
                 size_hint=(1, None),
-                height=dp(45),
                 on_release=lambda x, a=auto: self.confirm_delete_specific(a)
             )
 
+            second_row.add_widget(edit_btn)
+            second_row.add_widget(delete_btn)
 
-            buttons.add_widget(update_btn)
-            buttons.add_widget(delete_btn)
+            buttons.add_widget(second_row)
+
             card.add_widget(buttons)
+
 
             # ---------- ADD CARD ----------
             self.list_box.add_widget(card)
@@ -383,3 +409,61 @@ class MyCarsScreen(MDScreen):
 
         self.dialog_update.dismiss()
         self.load_autos()
+    
+    def open_edit_popup(self, auto, index):
+        from kivymd.uix.dialog import MDDialog
+        from kivymd.uix.textfield import MDTextField
+
+        self.edit_index = index
+
+        self.edit_marca = MDTextField(
+            hint_text="Marca",
+            text=auto.get("marca", ""),
+            mode="rectangle"
+        )
+
+        self.edit_modello = MDTextField(
+            hint_text="Modello",
+            text=auto.get("modello", ""),
+            mode="rectangle"
+        )
+
+        content = MDBoxLayout(
+            orientation="vertical",
+            spacing=dp(10),
+            padding=dp(10),
+            size_hint_y=None,
+        )
+        content.bind(minimum_height=content.setter("height"))
+        content.add_widget(self.edit_marca)
+        content.add_widget(self.edit_modello)
+
+        self.dialog_edit = MDDialog(
+            title="Modifica Nome Auto",
+            type="custom",
+            content_cls=content,
+            buttons=[
+                MDFlatButton(text="ANNULLA", on_release=lambda x: self.dialog_edit.dismiss()),
+                MDFlatButton(text="SALVA", text_color=BLU_NOTTE,
+                            on_release=lambda x: self.save_edit_name()),
+            ],
+        )
+        self.dialog_edit.open()
+
+    def save_edit_name(self):
+        new_marca = self.edit_marca.text.strip()
+        new_modello = self.edit_modello.text.strip()
+
+        with open(self.data_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        data["autos"][self.edit_index]["marca"] = new_marca
+        data["autos"][self.edit_index]["modello"] = new_modello
+
+        with open(self.data_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+
+        self.dialog_edit.dismiss()
+        self.load_autos()
+
+

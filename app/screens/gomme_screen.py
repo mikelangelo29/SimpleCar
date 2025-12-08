@@ -96,8 +96,20 @@ class GommeScreen(MDScreen):
             text_color=(1, 1, 1, 1),
             on_release=lambda x: self._go_back(),
         )
-        
+              
         top.add_widget(back)
+        title = MDLabel(
+            text="Gomme",
+            halign="center",
+            valign="middle",
+            bold=True,
+            font_style="H4",
+            theme_text_color="Custom",
+            text_color=(1, 1, 1, 1)
+        )
+        top.add_widget(title)
+
+        top.add_widget(MDBoxLayout(size_hint_x=0.2))  # bilanciamento simmetrico
         
         main.add_widget(top)
 
