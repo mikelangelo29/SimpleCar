@@ -7,6 +7,7 @@ from kivymd.uix.card import MDCard
 from kivymd.uix.anchorlayout import MDAnchorLayout
 from kivy.metrics import dp
 from kivy.utils import get_color_from_hex
+from kivymd.app import MDApp
 
 import json
 import os
@@ -158,17 +159,9 @@ class AddAutoScreen(MDScreen):
         #     return
 
         # --- Assegna colore tachimetro automaticamente ---
-        import random
-        colors = ["blue", "red", "green", "yellow", "orange", "purple"]
-
-        # PRIMA AUTO → SEMPRE BLU
-        if len(autos) == 0:
-            auto_color = "blue"
-
-        # AUTO SUCCESSIVE → RANDOM
-        else:
-            auto_color = random.choice(colors)
-
+        
+        app = MDApp.get_running_app()
+        auto_color = app.genera_colore_tachimetro()
 
 
         # --- Crea nuovo dizionario auto ---

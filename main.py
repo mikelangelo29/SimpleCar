@@ -14,7 +14,8 @@ MDRaisedButton.rounded_button = False
 
 from kivymd.app import MDApp
 from kivymd.uix.screenmanager import MDScreenManager
-
+import json
+import os
 from app.screens.mycars_screen import MyCarsScreen
 from app.screens.add_auto_screen import AddAutoScreen
 from app.screens.home_screen import HomeScreen
@@ -33,10 +34,36 @@ Builder.load_file("onboarding_tachimetro.kv")
 
 
 class SimpleCarApp(MDApp):
+
+    autos_file = "app/data/autos.json"
+
+    def genera_colore_tachimetro(self):
+        import random
+
+        colors = ["blue", "red", "green", "yellow", "orange", "purple"]
+
+        autos = self.load_autos() or []
+
+        # Se nessuna auto esiste → random totale (prima auto della Premium)
+        if not autos:
+            return random.choice(colors)
+
+        # Colore dell’ultima auto
+        last_color = autos[-1].get("tacho_color")
+
+        # Escludi il colore precedente
+        available = [c for c in colors if c != last_color]
+
+        return random.choice(available)
+
+
     def build(self):
         self.title = "EasyCar"
         self.icon = "app/assets/ea_icon.png"
+
         sm = MDScreenManager()
+
+        # --- Aggiunta degli screen ---
         sm.add_widget(HomeScreen(name="home"))
         sm.add_widget(AddAutoScreen(name="add_auto"))
         sm.add_widget(MyCarsScreen(name="mycars"))
@@ -46,10 +73,43 @@ class SimpleCarApp(MDApp):
         sm.add_widget(OnboardingWelcomeScreen(name="onb_welcome"))
         sm.add_widget(OnboardingCreateAutoScreen(name="onb_create_auto"))
         sm.add_widget(OnboardingTachimetroScreen(name="onb_tacho"))
- 
-        sm.current = "onb_welcome"
+
+        # --- Carico autos.json ---
+        autos = self.load_autos()
+
+        # --- Logica di avvio ---
+        if autos:
+            # Ci sono auto → salto onboarding e vado a MyCars
+            sm.current = "home"
+        else:
+            # Nessuna auto → avvio onboarding
+            sm.current = "onb_welcome"
 
         return sm
+
+ 
+
+    autos_file = "app/data/autos.json"
+
+    def load_autos(self):
+        """Legge il file autos.json e restituisce la lista di auto."""
+        if not os.path.exists(self.autos_file):
+            return []
+
+        try:
+            with open(self.autos_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data.get("autos", [])
+        except:
+            return []
+
+    def save_autos(self, autos_lista):
+        """Salva l'elenco delle auto nel JSON."""
+        data = {"autos": autos_lista}
+
+        with open(self.autos_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
 
 
 if __name__ == "__main__":

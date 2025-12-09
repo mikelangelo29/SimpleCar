@@ -1,6 +1,9 @@
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.dialog import MDDialog
 from kivy.properties import StringProperty
+from kivymd.app import MDApp
+import random
+
 
 class OnboardingTachimetroScreen(MDScreen):
 
@@ -35,3 +38,37 @@ class OnboardingTachimetroScreen(MDScreen):
 
         # Navigazione temporanea verso MyCars
         self.manager.current = "autos"
+
+    def crea_auto_e_apri_mycars(self):
+        app = MDApp.get_running_app()
+
+        # 1️⃣ Recupero dati Screen 2
+        marca, modello = self.manager.get_screen("onb_create_auto").get_data()
+
+        # 2️⃣ Km da Screen 3
+        km = self.get_km()
+        if not km:
+            self.mostra_errore("Inserisci il chilometraggio prima di entrare nell’app.")
+            return
+
+        # 3️⃣ Struttura auto
+        nuova_auto = {
+            "marca": marca,
+            "modello": modello,
+            "targa": "",
+            "km": int(km),
+            "anno": "",
+            "scadenze": {},
+            "tacho_color": random.choice(["blue", "red", "purple", "orange", "green", "yellow"])
+        }
+
+        # 4️⃣ Carico autos
+        autos = app.load_autos() or []
+        autos.append(nuova_auto)
+
+        # 5️⃣ Salvo
+        app.save_autos(autos)
+
+        # 6️⃣ Entro in MyCars
+        self.manager.current = "mycars"
+

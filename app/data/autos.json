@@ -1,76 +1,13 @@
 {
     "autos": [
         {
-            "marca": "Opel",
-            "modello": "Astra",
+            "marca": "Ford",
+            "modello": "Fiesta",
             "targa": "",
-            "km": 897456,
+            "km": 100000,
             "anno": "",
-            "scadenze": {
-                "revisione": {
-                    "ultimo": "12/12/2022",
-                    "prossimo": "12/12/2024",
-                    "stato": "🔴"
-                },
-                "gomme": {
-                    "treno": "T2",
-                    "km_percorsi": 39456,
-                    "km_residui": 5544,
-                    "stato": "🟡"
-                }
-            },
-            "tacho_color": "blue",
-            "anno_imm": "",
-            "revisione": {
-                "ultima": "12/12/2022",
-                "prossima": "12/12/2024"
-            },
-            "gomme": {
-                "tipo": "doppio",
-                "intervallo": null,
-                "km_ultimo_cambio": 897456,
-                "data_montaggio": null,
-                "t1": {
-                    "km_montaggio": 853000
-                },
-                "attivo": "t1",
-                "t2": {
-                    "km_montaggio": null
-                }
-            }
-        },
-        {
-            "marca": "",
-            "modello": "sfds",
-            "targa": "",
-            "km": 456112,
-            "anno": "",
-            "scadenze": {
-                "revisione": {
-                    "ultimo": "02/02/2024",
-                    "prossimo": "02/02/2026",
-                    "stato": "🟡"
-                }
-            },
-            "tacho_color": "purple",
-            "anno_imm": "",
-            "revisione": {
-                "ultima": "02/02/2024",
-                "prossima": "02/02/2026"
-            },
-            "gomme": {
-                "t1": {
-                    "km_montaggio": 44444000,
-                    "data_montaggio": null,
-                    "intervallo_km": null
-                },
-                "t2": {
-                    "km_montaggio": 44444444,
-                    "data_montaggio": null,
-                    "intervallo_km": 45000
-                },
-                "attivo": "t2"
-            }
+            "scadenze": {},
+            "tacho_color": "green"
         }
     ]
 }
