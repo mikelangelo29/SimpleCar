@@ -1,0 +1,51 @@
+<OnboardingWelcomeScreen>:
+    md_bg_color: 0.04, 0.06, 0.12, 1  # sfondo blu-notte attenuato
+
+    MDBoxLayout:
+        orientation: "vertical"
+        spacing: dp(25)
+        padding: [dp(25), dp(10), dp(25), dp(25)]
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+        Image:
+            source: root.logo_path
+            size_hint: (0.5, None)
+            height: dp(140)
+            allow_stretch: True
+            keep_ratio: True
+            pos_hint: {"center_x": 0.5}
+
+        MDLabel:
+            text: "Benvenuto in EasyCar"
+            halign: "center"
+            theme_text_color: "Custom"
+            text_color: 1, 1, 1, 1
+            font_style: "H5"
+
+        MDLabel:
+            text: "Gestisci le scadenze della tua auto\nin modo semplice, completamente offline\ne senza alcuna registrazione."
+            halign: "center"
+            theme_text_color: "Custom"
+            text_color: 0.85, 0.88, 0.92, 1
+            font_style: "Body1"
+        
+        # ⭐ NUOVA SCRITTA FREE/PREMIUM
+        MDLabel:
+            text: "Gratis per la gestione di una sola auto.\nPer più auto, passa alla versione Premium."
+            halign: "center"
+            theme_text_color: "Custom"
+            text_color: 0.75, 0.78, 0.82, 1
+            font_style: "Caption"
+            size_hint_y: None
+            height: dp(50)
+
+        MDRectangleFlatButton:
+            text: "Inizia"
+            md_bg_color: 0.06, 0.10, 0.25, 1   # pulsante primario (blu-notte pieno)
+            text_color: 1, 1, 1, 1
+            size_hint: (1, None)
+            height: dp(50)
+            pos_hint: {"center_x": 0.5}
+            on_release:
+                root.manager.current = "onb_create_auto"
+                print("Onboarding: Inizia premuto")

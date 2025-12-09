@@ -1,0 +1,73 @@
+<OnboardingTachimetroScreen>:
+    md_bg_color: 0.04, 0.06, 0.12, 1
+
+    # --- TASTO INDIETRO IN ALTO A SINISTRA ---
+    MDTextButton:
+        text: "< Indietro"
+        pos_hint: {"x": 0.02, "top": 0.98}
+        theme_text_color: "Custom"
+        text_color: 0.75, 0.78, 0.82, 1
+        on_release:
+            root.manager.current = "onb_create_auto"
+
+    AnchorLayout:
+        anchor_y: "center"
+        padding: dp(25)
+
+        MDBoxLayout:
+            orientation: "vertical"
+            spacing: dp(22)
+            size_hint_y: None
+            height: self.minimum_height
+
+            MDLabel:
+                text: "TACHIMETRO MASTER"
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                font_style: "H5"
+                size_hint_y: None
+                height: dp(40)
+
+            MDLabel:
+                text: "Inserisci i chilometri percorsi dalla tua auto.\nServirà per calcolare tutte le scadenze."
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: 0.7, 0.7, 0.75, 1
+                font_style: "Body1"
+                size_hint_y: None
+                height: dp(70)
+
+            MDTextField:
+                id: km_field
+                hint_text: "Aggiorna chilometraggio"
+                mode: "fill"
+                input_filter: "int"
+                helper_text_mode: "on_focus"
+
+            Image:
+                source: "app/assets/icons/tacho_blue.png"
+                size_hint: (0.32, None)
+                height: dp(120)
+                opacity: 0.30
+                pos_hint: {"center_x": 0.5}
+
+            MDLabel:
+                text: "Per scadenze sempre precise aggiorna ogni volta\nche vuoi il Tachimetro Master."
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: 0.75, 0.78, 0.82, 1
+                font_style: "Caption"
+                italic: True
+                size_hint_y: None
+                height: dp(55)
+
+            MDRectangleFlatButton:
+                text: "Entra nell’app"
+                md_bg_color: 0.06, 0.10, 0.25, 1
+                text_color: 1, 1, 1, 1
+                size_hint: (1, None)
+                height: dp(50)
+                pos_hint: {"center_x": 0.5}
+                on_release:
+                    on_release: root.completa_onboarding()

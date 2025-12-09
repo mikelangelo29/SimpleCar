@@ -1,0 +1,68 @@
+<OnboardingCreateAutoScreen>:
+    md_bg_color: 0.04, 0.06, 0.12, 1
+
+    # --- TASTO INDIETRO IN ALTO A SINISTRA ---
+    MDTextButton:
+        text: "< Indietro"
+        pos_hint: {"x": 0.02, "top": 0.98}
+        theme_text_color: "Custom"
+        text_color: 0.75, 0.78, 0.82, 1
+        on_release:
+            root.manager.current = "onb_welcome"
+
+    AnchorLayout:
+        anchor_y: "center"
+        padding: dp(25)
+
+        MDBoxLayout:
+            orientation: "vertical"
+            spacing: dp(20)
+            size_hint_y: None
+            height: self.minimum_height
+
+            MDLabel:
+                text: "Inserisci la tua auto"
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                font_style: "H5"
+                size_hint_y: None
+                height: dp(40)
+
+            MDLabel:
+                text: "Inserisci solo i dati principali della tua auto."
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: 0.7, 0.7, 0.75, 1
+                font_style: "Body1"
+                size_hint_y: None
+                height: dp(40)
+
+            MDTextField:
+                id: marca_field
+                hint_text: "Marca"
+                mode: "fill"
+                helper_text_mode: "on_focus"
+
+            MDTextField:
+                id: modello_field
+                hint_text: "Modello"
+                mode: "fill"
+                helper_text_mode: "on_focus"
+
+            Image:
+                source: "app/assets/logo_home.png"
+                size_hint: (0.35, None)
+                height: dp(110)
+                opacity: 0.30
+                pos_hint: {"center_x": 0.5}
+
+            MDRectangleFlatButton:
+                text: "Avanti"
+                md_bg_color: 0.06, 0.10, 0.25, 1
+                text_color: 1, 1, 1, 1
+                size_hint: (1, None)
+                height: dp(50)
+                pos_hint: {"center_x": 0.5}
+                on_release:
+                    root.vai_avanti()
