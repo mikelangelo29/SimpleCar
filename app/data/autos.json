@@ -1,13 +1,46 @@
 {
     "autos": [
         {
-            "marca": "Ford",
-            "modello": "Fiesta",
+            "marca": "opel",
+            "modello": "astra",
             "targa": "",
-            "km": 100000,
+            "km": 111111,
             "anno": "",
-            "scadenze": {},
-            "tacho_color": "green"
+            "scadenze": {
+                "tagliando": {
+                    "ultimo": "98000",
+                    "prossimo": "113000",
+                    "stato": "🟡"
+                },
+                "revisione": {
+                    "ultimo": "05/05/2024",
+                    "prossimo": "05/05/2026",
+                    "stato": "⚪"
+                },
+                "gomme": {
+                    "treno": "T1",
+                    "km_percorsi": 23111,
+                    "km_residui": 21889,
+                    "stato": "⚪"
+                }
+            },
+            "tacho_color": "orange",
+            "gomme": {
+                "t1": {
+                    "km_montaggio": 88000
+                },
+                "attivo": "t1"
+            },
+            "tagliando": {
+                "intervallo_km": 15000,
+                "ultimo_km": 98000,
+                "prossimo_km": 113000
+            },
+            "anno_imm": "",
+            "revisione": {
+                "ultima": "05/05/2024",
+                "prossima": "05/05/2026"
+            }
         }
     ]
 }

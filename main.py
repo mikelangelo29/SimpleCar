@@ -22,6 +22,7 @@ from app.screens.home_screen import HomeScreen
 from app.screens.detail_auto_screen import DetailAutoScreen
 from app.screens.gomme_screen import GommeScreen
 from app.screens.revisione_screen import RevisioneScreen
+from app.screens.tagliando_screen import TagliandoScreen
 from app.screens.onboarding_welcome import OnboardingWelcomeScreen
 from app.screens.onboarding_create_auto import OnboardingCreateAutoScreen
 from app.screens.onboarding_tacho import OnboardingTachimetroScreen
@@ -70,6 +71,7 @@ class SimpleCarApp(MDApp):
         sm.add_widget(DetailAutoScreen(name="detail_auto"))
         sm.add_widget(GommeScreen(name="gomme"))
         sm.add_widget(RevisioneScreen(name="revisione"))
+        sm.add_widget(TagliandoScreen(name="tagliando"))
         sm.add_widget(OnboardingWelcomeScreen(name="onb_welcome"))
         sm.add_widget(OnboardingCreateAutoScreen(name="onb_create_auto"))
         sm.add_widget(OnboardingTachimetroScreen(name="onb_tacho"))

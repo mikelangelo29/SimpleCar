@@ -372,7 +372,13 @@ class DetailAutoScreen(MDScreen):
             rev_screen.current_auto_index = self.selected_index
             self.manager.current = "revisione"
 
-    
+        elif key == "tagliando":
+            ts = self.manager.get_screen("tagliando")
+            ts.current_auto = self.auto
+            ts.current_auto_index = self.selected_index
+            self.manager.current = "tagliando"
+
+
     def update_view(self):
         self.on_pre_enter()
 
