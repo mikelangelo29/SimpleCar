@@ -112,8 +112,9 @@ class DetailAutoScreen(MDScreen):
 
         left_col.add_widget(
             MDLabel(
-                text=nome_auto,
-                font_style="H5",
+                text=nome_auto.upper(),
+                font_style="H4",
+                bold=True,
                 halign="left",
                 theme_text_color="Custom",
                 text_color=BLU_NOTTE
@@ -150,8 +151,8 @@ class DetailAutoScreen(MDScreen):
             ("Tagliando",            "tagliando",        "tune"),
             ("Revisione",            "revisione",         "clipboard-check"),
             ("Gomme",                "gomme",             "tyre"),
-            ("Dischi freno",         "dischi",            "disc"),
-            ("Pastiglie freno",      "pastiglie",         "car-brake-alert"),
+            ("Dischi freno",         "dischi_freno",            "disc"),
+            ("Pastiglie freno",      "pastiglie_freno",         "car-brake-alert"),
             ("Ammortizzatori",       "ammortizzatori",    "car-defrost-rear"),
             ("Cinghia distribuzione","cinghia",           "cog-transfer"),
             ("Batteria",             "batteria",          "car-battery"),
@@ -356,10 +357,12 @@ class DetailAutoScreen(MDScreen):
 
         return card
 
+    
     # ---------------------------------------------------------
     # OPENERS (GOMME ecc.)
     # ---------------------------------------------------------
     def open_item(self, key):
+        print("OPEN_ITEM:", key)
         if key == "gomme":
             gs = self.manager.get_screen("gomme")
             gs.current_auto = self.auto
@@ -377,6 +380,24 @@ class DetailAutoScreen(MDScreen):
             ts.current_auto = self.auto
             ts.current_auto_index = self.selected_index
             self.manager.current = "tagliando"
+
+        elif key == "dischi_freno":
+            df = self.manager.get_screen("dischi_freno")
+            df.current_auto = self.auto
+            df.current_auto_index = self.selected_index
+            self.manager.current = "dischi_freno"
+
+        elif key == "pastiglie_freno":
+            ps = self.manager.get_screen("pastiglie_freno")
+            ps.current_auto = self.auto
+            ps.current_auto_index = self.selected_index
+            self.manager.current = "pastiglie_freno"
+
+        elif key == "ammortizzatori":
+            am = self.manager.get_screen("ammortizzatori")
+            am.current_auto = self.auto
+            am.current_auto_index = self.selected_index
+            self.manager.current = "ammortizzatori"
 
 
     def update_view(self):

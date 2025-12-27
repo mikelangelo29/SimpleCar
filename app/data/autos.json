@@ -22,6 +22,21 @@
                     "km_percorsi": 23111,
                     "km_residui": 21889,
                     "stato": "⚪"
+                },
+                "dischi_freno": {
+                    "ultimo": "50000",
+                    "prossimo": "110000",
+                    "stato": "🔴"
+                },
+                "pastiglie_freno": {
+                    "ultimo": "78000",
+                    "prossimo": "108000",
+                    "stato": "🔴"
+                },
+                "ammortizzatori": {
+                    "ultimo": "40000",
+                    "prossimo": "120000",
+                    "stato": "🟡"
                 }
             },
             "tacho_color": "orange",
@@ -40,6 +55,24 @@
             "revisione": {
                 "ultima": "05/05/2024",
                 "prossima": "05/05/2026"
+            },
+            "dischi_freno": {
+                "intervallo_km": 60000,
+                "ultimo_km": 50000,
+                "prossimo_km": 110000,
+                "data": ""
+            },
+            "pastiglie_freno": {
+                "intervallo_km": 30000,
+                "ultimo_km": 78000,
+                "prossimo_km": 108000,
+                "data": ""
+            },
+            "ammortizzatori": {
+                "intervallo_km": 80000,
+                "ultimo_km": 40000,
+                "prossimo_km": 120000,
+                "data": ""
             }
         }
     ]
