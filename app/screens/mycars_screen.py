@@ -189,12 +189,13 @@ class MyCarsScreen(MDScreen):
 
             title_label = MDLabel(
                 text=titolo.upper(),
-                font_style="H4",              # 🔥 più grande e più evidente
+                font_style="H5",              # 🔥 più grande e più evidente
                 halign="left",
                 valign="middle",
                 bold=True,                    # 🔥 peso visivo maggiorato
                 theme_text_color="Custom",
-                text_color=BLU_NOTTE,         # 🔥 colore del brand EasyAuto
+                text_color=BLU_NOTTE,
+
             )
 
             details_icon = MDIcon(

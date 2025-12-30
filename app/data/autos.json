@@ -37,6 +37,16 @@
                     "ultimo": "40000",
                     "prossimo": "120000",
                     "stato": "🟡"
+                },
+                "cinghia": {
+                    "ultimo": "10000",
+                    "prossimo": "110000",
+                    "stato": "🔴"
+                },
+                "batteria": {
+                    "ultimo": "11/11/2023",
+                    "prossimo": "11/11/2027",
+                    "stato": "⚪"
                 }
             },
             "tacho_color": "orange",
@@ -73,7 +83,29 @@
                 "ultimo_km": 40000,
                 "prossimo_km": 120000,
                 "data": ""
+            },
+            "cinghia": {
+                "intervallo_km": 100000,
+                "ultimo_km": 10000,
+                "prossimo_km": 110000,
+                "data": "",
+                "intervallo_anni": "",
+                "prossima_data": ""
+            },
+            "batteria": {
+                "intervallo_anni": 4,
+                "ultima_data": "11/11/2023",
+                "prossima_data": "11/11/2027"
             }
+        },
+        {
+            "marca": "Wolkswagen",
+            "modello": "Golf",
+            "targa": "",
+            "km": 222222,
+            "anno": "",
+            "scadenze": {},
+            "tacho_color": "red"
         }
     ]
 }

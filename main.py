@@ -26,6 +26,8 @@ from app.screens.tagliando_screen import TagliandoScreen
 from app.screens.dischi_freno_screen import DischiFrenoScreen
 from app.screens.pastiglie_freno_screen import PastiglieFrenoScreen
 from app.screens.ammortizzatori_screen import AmmortizzatoriScreen
+from app.screens.cinghia_screen import CinghiaScreen
+from app.screens.batteria_screen import BatteriaScreen
 from app.screens.onboarding_welcome import OnboardingWelcomeScreen
 from app.screens.onboarding_create_auto import OnboardingCreateAutoScreen
 from app.screens.onboarding_tacho import OnboardingTachimetroScreen
@@ -78,10 +80,13 @@ class SimpleCarApp(MDApp):
         sm.add_widget(DischiFrenoScreen(name="dischi_freno"))
         sm.add_widget(PastiglieFrenoScreen(name="pastiglie_freno"))
         sm.add_widget(AmmortizzatoriScreen(name="ammortizzatori"))
+        sm.add_widget(CinghiaScreen(name="cinghia"))
+        sm.add_widget(BatteriaScreen(name="batteria"))
         sm.add_widget(OnboardingWelcomeScreen(name="onb_welcome"))
         sm.add_widget(OnboardingCreateAutoScreen(name="onb_create_auto"))
         sm.add_widget(OnboardingTachimetroScreen(name="onb_tacho"))
-        print([s.name for s in sm.screens])
+       
+
 
 
         # --- Carico autos.json ---

@@ -113,7 +113,7 @@ class DetailAutoScreen(MDScreen):
         left_col.add_widget(
             MDLabel(
                 text=nome_auto.upper(),
-                font_style="H4",
+                font_style="H5",
                 bold=True,
                 halign="left",
                 theme_text_color="Custom",
@@ -398,6 +398,20 @@ class DetailAutoScreen(MDScreen):
             am.current_auto = self.auto
             am.current_auto_index = self.selected_index
             self.manager.current = "ammortizzatori"
+
+        elif key == "cinghia":
+            cs = self.manager.get_screen("cinghia")
+            cs.current_auto = self.auto
+            cs.current_auto_index = self.selected_index
+            self.manager.current = "cinghia"
+
+        elif key == "batteria":
+            bs = self.manager.get_screen("batteria")
+            bs.current_auto = self.auto
+            bs.current_auto_index = self.selected_index
+            self.manager.current = "batteria"
+
+
 
 
     def update_view(self):
