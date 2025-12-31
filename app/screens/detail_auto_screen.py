@@ -19,7 +19,7 @@ BLU_NOTTE = get_color_from_hex("0D1B2A")
 GRIGIO_SFONDO = (0.94, 0.95, 0.96, 1)
 GRIGIO_HEADER = (0.90, 0.91, 0.93, 1)
 GRIGIO_CARD = (0.965, 0.965, 0.97, 1)
-
+VERDE_OK = (0.1, 0.6, 0.3, 1) 
 # ------------------------- PATHS ---------------------------
 DATA_PATH = "app/data/autos.json"
 IMG_TYRE = str(Path(__file__).parent.parent / "assets" / "tyre.png")
@@ -169,7 +169,6 @@ class DetailAutoScreen(MDScreen):
         amministrative = [
             ("Assicurazione", "assicurazione", "shield-car"),
             ("Bollo",         "bollo",         "cash"),
-            ("Multe",         "multe",         "police-badge-outline")
         ]
 
         for nome, key, icon in amministrative:
@@ -224,6 +223,34 @@ class DetailAutoScreen(MDScreen):
         box.add_widget(lbl)
         box.add_widget(sep)
         return box
+    
+    def get_label_ultimo(self, key):
+        return {
+            "tagliando": "Ultimo intervento",
+            "dischi_freno": "Ultima sostituzione",
+            "pastiglie_freno": "Ultima sostituzione",
+            "ammortizzatori": "Ultima sostituzione",
+            "cinghia": "Ultima sostituzione",
+            "batteria": "Ultima sostituzione",
+            "revisione": "Ultima revisione",
+            "bollo": "Ultimo pagamento",
+            "assicurazione": "Ultimo rinnovo",
+        }.get(key, "Ultimo")
+    
+    def get_label_prossimo(self, key):
+        return {
+            "tagliando": "Prossimo tagliando",
+            "revisione": "Prossima revisione",
+            "dischi_freno": "Prossima sostituzione",
+            "pastiglie_freno": "Prossima sostituzione",
+            "ammortizzatori": "Prossima sostituzione",
+            "cinghia": "Prossima sostituzione",
+            "batteria": "Prossima sostituzione",
+            "assicurazione": "Scadenza",
+            "bollo": "Scadenza",
+        }.get(key, "Prossimo intervento")
+
+
 
     # ---------------------------------------------------------
     # PARAMETER CARD
@@ -265,13 +292,7 @@ class DetailAutoScreen(MDScreen):
                 pos_hint={"center_y": 0.5}
             )
 
-        # ------ LABEL “Prossimo/a” DINAMICO ------
-        if key == "revisione":
-            label_prossimo = "Prossima"
-        elif key in ["assicurazione"]:  # se in futuro aggiungiamo femminili
-            label_prossimo = "Prossima"
-        else:
-            label_prossimo = "Prossimo"
+
 
         # --- CONTENUTO ---
         col = MDBoxLayout(orientation="vertical", spacing=dp(3))
@@ -290,8 +311,16 @@ class DetailAutoScreen(MDScreen):
             km_percorsi = sc.get("km_percorsi", "—")
             km_residui = sc.get("km_residui", "—")
 
+            # traduzione UI: T1/T2 → SET 1/SET 2
+            if treno == "T1":
+                set_label = "SET 1"
+            elif treno == "T2":
+                set_label = "SET 2"
+            else:
+                set_label = "—"
+
             col.add_widget(MDLabel(
-                text=f"Treno montato: {treno}",
+                text=f"Set montato: {set_label}",
                 theme_text_color="Custom",
                 text_color=BLU_NOTTE,
                 font_style="Subtitle2"
@@ -309,22 +338,29 @@ class DetailAutoScreen(MDScreen):
                 font_style="Subtitle2"
             ))
 
+
         else:
             # Ultimo
+
+            label_ultimo = self.get_label_ultimo(key)
+
             col.add_widget(MDLabel(
-                text=f"Ultimo: {ultimo}",
+                text=f"{label_ultimo}: {ultimo}",
                 theme_text_color="Custom",
                 text_color=BLU_NOTTE,
                 font_style="Subtitle2"
             ))
 
-            # Prossimo / Prossima
+            label_prossimo = self.get_label_prossimo(key)
+
             col.add_widget(MDLabel(
                 text=f"{label_prossimo}: {prossimo}",
                 theme_text_color="Custom",
                 text_color=BLU_NOTTE,
                 font_style="Subtitle2"
             ))
+
+        col.add_widget(MDBoxLayout(size_hint_y=None, height=dp(4)))
 
         # --- Stato testuale leggibile ---
         if stato == "🔴":
@@ -335,7 +371,7 @@ class DetailAutoScreen(MDScreen):
             stato_color = (0.8, 0.55, 0, 1)  # giallo/ocra deciso
         else:
             stato_txt = "Regolare"
-            stato_color = BLU_NOTTE  # colore standard
+            stato_color = VERDE_OK  # colore standard
 
         col.add_widget(MDLabel(
             text=f"Stato: {stato_txt}",
