@@ -47,6 +47,16 @@
                     "ultimo": "11/11/2023",
                     "prossimo": "11/11/2027",
                     "stato": "⚪"
+                },
+                "assicurazione": {
+                    "ultimo": "2/1/25",
+                    "prossimo": "02/01/2026",
+                    "stato": "🟡"
+                },
+                "bollo": {
+                    "ultimo": "1/2/25",
+                    "prossimo": "01/02/2026",
+                    "stato": "⚪"
                 }
             },
             "tacho_color": "orange",
@@ -96,6 +106,18 @@
                 "intervallo_anni": 4,
                 "ultima_data": "11/11/2023",
                 "prossima_data": "11/11/2027"
+            },
+            "assicurazione": {
+                "durata_mesi": 12,
+                "decorrenza": "2/1/25",
+                "scadenza": "02/01/2026",
+                "importo": null
+            },
+            "bollo": {
+                "ultimo_pagamento": "1/2/25",
+                "durata_mesi": 12,
+                "scadenza": "01/02/2026",
+                "importo": null
             }
         },
         {

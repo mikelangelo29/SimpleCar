@@ -411,6 +411,17 @@ class DetailAutoScreen(MDScreen):
             bs.current_auto_index = self.selected_index
             self.manager.current = "batteria"
 
+        elif key == "assicurazione":
+            a = self.manager.get_screen("assicurazione")
+            a.current_auto = self.auto
+            a.current_auto_index = self.selected_index
+            self.manager.current = "assicurazione"
+        
+        elif key == "bollo":
+            b = self.manager.get_screen("bollo")
+            b.current_auto = self.auto
+            b.current_auto_index = self.selected_index
+            self.manager.current = "bollo"
 
 
 

@@ -28,6 +28,8 @@ from app.screens.pastiglie_freno_screen import PastiglieFrenoScreen
 from app.screens.ammortizzatori_screen import AmmortizzatoriScreen
 from app.screens.cinghia_screen import CinghiaScreen
 from app.screens.batteria_screen import BatteriaScreen
+from app.screens.assicurazione_screen import AssicurazioneScreen
+from app.screens.bollo_screen import BolloScreen
 from app.screens.onboarding_welcome import OnboardingWelcomeScreen
 from app.screens.onboarding_create_auto import OnboardingCreateAutoScreen
 from app.screens.onboarding_tacho import OnboardingTachimetroScreen
@@ -82,6 +84,8 @@ class SimpleCarApp(MDApp):
         sm.add_widget(AmmortizzatoriScreen(name="ammortizzatori"))
         sm.add_widget(CinghiaScreen(name="cinghia"))
         sm.add_widget(BatteriaScreen(name="batteria"))
+        sm.add_widget(AssicurazioneScreen(name="assicurazione"))
+        sm.add_widget(BolloScreen(name="bollo"))
         sm.add_widget(OnboardingWelcomeScreen(name="onb_welcome"))
         sm.add_widget(OnboardingCreateAutoScreen(name="onb_create_auto"))
         sm.add_widget(OnboardingTachimetroScreen(name="onb_tacho"))
