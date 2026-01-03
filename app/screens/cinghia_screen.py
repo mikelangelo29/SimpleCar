@@ -6,7 +6,7 @@ from kivymd.uix.button import MDRaisedButton, MDFlatButton, MDIconButton
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.selectioncontrol import MDCheckbox
-
+from app.storage.data_store import load_data, save_data, ensure_live_file
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
 from kivy.metrics import dp
@@ -31,7 +31,7 @@ class CinghiaScreen(MDScreen):
     - Salva sia in auto["cinghia"] sia in auto["scadenze"]["cinghia"]
     """
 
-    data_path = "app/data/autos.json"
+    
 
     def on_pre_enter(self, *args):
         self._ensure_structure()
@@ -362,26 +362,20 @@ class CinghiaScreen(MDScreen):
         self._go_back()
 
     def _save_by_index(self):
-        data_path = os.path.join("app", "data", "autos.json")
-        if not os.path.exists(data_path):
-            return
-
-        with open(data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        ensure_live_file()
+        data = load_data()
 
         idx = int(self.current_auto_index)
-        if "autos" in data and 0 <= idx < len(data["autos"]):
-            data["autos"][idx] = self.current_auto
+        autos = data.get("autos", [])
+        if 0 <= idx < len(autos):
+            autos[idx] = self.current_auto
+            data["autos"] = autos
+            save_data(data)
 
-        with open(data_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
 
     def _save_full_fallback(self):
-        if not os.path.exists(self.data_path):
-            return
-
-        with open(self.data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        ensure_live_file()
+        data = load_data()
 
         autos = data.get("autos", [])
         for a in autos:
@@ -393,8 +387,8 @@ class CinghiaScreen(MDScreen):
                 a.update(self.current_auto)
                 break
 
-        with open(self.data_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+        data["autos"] = autos
+        save_data(data)
 
     # =========================================================
     # INFO / ERROR / NAV

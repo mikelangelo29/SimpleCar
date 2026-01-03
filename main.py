@@ -34,6 +34,8 @@ from app.screens.onboarding_welcome import OnboardingWelcomeScreen
 from app.screens.onboarding_create_auto import OnboardingCreateAutoScreen
 from app.screens.onboarding_tacho import OnboardingTachimetroScreen
 from kivy.lang import Builder
+from app.storage.data_store import ensure_live_file, load_autos_list, save_autos_list
+
 
 Builder.load_file("onboarding_welcome.kv")
 Builder.load_file("onboarding_create_auto.kv")
@@ -92,6 +94,7 @@ class SimpleCarApp(MDApp):
        
 
 
+        ensure_live_file()
 
         # --- Carico autos.json ---
         autos = self.load_autos()
@@ -109,25 +112,17 @@ class SimpleCarApp(MDApp):
  
 
     autos_file = "app/data/autos.json"
-
+    
     def load_autos(self):
-        """Legge il file autos.json e restituisce la lista di auto."""
-        if not os.path.exists(self.autos_file):
-            return []
+        """Legge il file DATI VIVO e restituisce la lista di auto."""
+        from app.storage.data_store import load_autos_list
+        return load_autos_list()
 
-        try:
-            with open(self.autos_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                return data.get("autos", [])
-        except:
-            return []
 
     def save_autos(self, autos_lista):
-        """Salva l'elenco delle auto nel JSON."""
-        data = {"autos": autos_lista}
-
-        with open(self.autos_file, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+        """Salva l'elenco delle auto nel file DATI VIVO."""
+        from app.storage.data_store import save_autos_list
+        save_autos_list(autos_lista)
 
 
 

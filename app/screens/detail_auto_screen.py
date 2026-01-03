@@ -11,7 +11,8 @@ from pathlib import Path
 import json
 import os
 
-
+# ✅ NUOVO: usa il data_store (file VIVO)
+from app.storage.data_store import load_data, save_data
 
 
 # ------------------------- PALETTE -------------------------
@@ -19,9 +20,8 @@ BLU_NOTTE = get_color_from_hex("0D1B2A")
 GRIGIO_SFONDO = (0.94, 0.95, 0.96, 1)
 GRIGIO_HEADER = (0.90, 0.91, 0.93, 1)
 GRIGIO_CARD = (0.965, 0.965, 0.97, 1)
-VERDE_OK = (0.1, 0.6, 0.3, 1) 
+VERDE_OK = (0.1, 0.6, 0.3, 1)
 # ------------------------- PATHS ---------------------------
-DATA_PATH = "app/data/autos.json"
 IMG_TYRE = str(Path(__file__).parent.parent / "assets" / "tyre.png")
 
 
@@ -37,16 +37,10 @@ class DetailAutoScreen(MDScreen):
         self.build_ui()
 
     # ---------------------------------------------------------
-    # LOAD AUTO — ORA CARICA QUELLA GIUSTA IN BASE A selected_index
+    # LOAD AUTO — ORA CARICA DAL FILE VIVO
     # ---------------------------------------------------------
     def load_auto(self):
-        if not os.path.exists(DATA_PATH):
-            self.auto = None
-            return
-
-        with open(DATA_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
+        data = load_data()  # ✅ legge dal file VIVO
         autos = data.get("autos", [])
 
         # fallback di sicurezza
@@ -141,7 +135,6 @@ class DetailAutoScreen(MDScreen):
         header.add_widget(tacho_img)
         root.add_widget(header)
 
-
         # ======================================================
         # SCADENZE TECNICHE
         # ======================================================
@@ -223,7 +216,7 @@ class DetailAutoScreen(MDScreen):
         box.add_widget(lbl)
         box.add_widget(sep)
         return box
-    
+
     def get_label_ultimo(self, key):
         return {
             "tagliando": "Ultimo intervento",
@@ -236,7 +229,7 @@ class DetailAutoScreen(MDScreen):
             "bollo": "Ultimo pagamento",
             "assicurazione": "Ultimo rinnovo",
         }.get(key, "Ultimo")
-    
+
     def get_label_prossimo(self, key):
         return {
             "tagliando": "Prossimo tagliando",
@@ -249,8 +242,6 @@ class DetailAutoScreen(MDScreen):
             "assicurazione": "Scadenza",
             "bollo": "Scadenza",
         }.get(key, "Prossimo intervento")
-
-
 
     # ---------------------------------------------------------
     # PARAMETER CARD
@@ -291,8 +282,6 @@ class DetailAutoScreen(MDScreen):
                 text_color=BLU_NOTTE,
                 pos_hint={"center_y": 0.5}
             )
-
-
 
         # --- CONTENUTO ---
         col = MDBoxLayout(orientation="vertical", spacing=dp(3))
@@ -338,10 +327,7 @@ class DetailAutoScreen(MDScreen):
                 font_style="Subtitle2"
             ))
 
-
         else:
-            # Ultimo
-
             label_ultimo = self.get_label_ultimo(key)
 
             col.add_widget(MDLabel(
@@ -380,9 +366,9 @@ class DetailAutoScreen(MDScreen):
             font_style="Subtitle2"
         ))
 
-
         card.add_widget(icona)
         card.add_widget(col)
+
         # --- Colore card in base allo stato ---
         if stato == "🔴":
             card.md_bg_color = (1, 0.85, 0.85, 1)   # rosino allerta
@@ -393,7 +379,6 @@ class DetailAutoScreen(MDScreen):
 
         return card
 
-    
     # ---------------------------------------------------------
     # OPENERS (GOMME ecc.)
     # ---------------------------------------------------------
@@ -452,18 +437,15 @@ class DetailAutoScreen(MDScreen):
             a.current_auto = self.auto
             a.current_auto_index = self.selected_index
             self.manager.current = "assicurazione"
-        
+
         elif key == "bollo":
             b = self.manager.get_screen("bollo")
             b.current_auto = self.auto
             b.current_auto_index = self.selected_index
             self.manager.current = "bollo"
 
-
-
     def update_view(self):
         self.on_pre_enter()
-
 
     # ---------------------------------------------------------
     # AGGIORNAMENTO KM (dialog)
@@ -493,6 +475,7 @@ class DetailAutoScreen(MDScreen):
 
         self.dialog_km.open()
 
+    # ✅ MODIFICATO: salva su file VIVO
     def save_km(self):
         val = self.km_field.text.strip()
 
@@ -502,36 +485,45 @@ class DetailAutoScreen(MDScreen):
 
         new_km = int(val)
 
-        with open(DATA_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        data = load_data()  # ✅ legge dal file VIVO
 
-        data["autos"][self.selected_index]["km"] = new_km
+        autos = data.get("autos", [])
+        if not autos:
+            self.dialog_km.dismiss()
+            return
 
-        with open(DATA_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+        idx = self.selected_index
+        if idx >= len(autos):
+            idx = 0
+
+        autos[idx]["km"] = new_km
+        data["autos"] = autos
+
+        save_data(data)  # ✅ scrive sul file VIVO
 
         self.dialog_km.dismiss()
         self.on_pre_enter()
-    
+
+    # ✅ MODIFICATO: salva su file VIVO
     def save_auto_data(self):
         """
         Salva TUTTE le modifiche fatte a self.auto
-        dentro autos.json per l'auto selezionata.
+        dentro il file dati VIVO per l'auto selezionata.
         """
-        if not os.path.exists(DATA_PATH):
+        data = load_data()  # ✅ legge dal file VIVO
+
+        autos = data.get("autos", [])
+        if not autos:
             return
 
-        # 1) Carica il file
-        with open(DATA_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        idx = self.selected_index
+        if idx >= len(autos):
+            idx = 0
 
-        # 2) Sovrascrive l'auto giusta
-        data["autos"][self.selected_index] = self.auto
+        autos[idx] = self.auto
+        data["autos"] = autos
 
-        # 3) Riscrive il JSON
-        with open(DATA_PATH, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+        save_data(data)  # ✅ scrive sul file VIVO
 
-        # 4) Aggiorna UI
+        # Aggiorna UI
         self.on_pre_enter()
-

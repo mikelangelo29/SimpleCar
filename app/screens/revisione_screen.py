@@ -10,12 +10,17 @@ from kivymd.uix.dialog import MDDialog
 from datetime import datetime, timedelta
 from kivymd.uix.card import MDCard
 
+# ✅ NUOVO: runtime storage (file VIVO)
+from app.storage.data_store import load_data, save_data, ensure_live_file
+
 
 class RevisioneScreen(Screen):
 
     def on_pre_enter(self, *args):
         detail = self.manager.get_screen("detail_auto")
         self.current_auto = detail.auto
+        # ✅ prende l'indice corrente (così salva l'auto giusta nel file vivo)
+        self.current_auto_index = getattr(detail, "selected_index", 0)
         self.build_ui()
 
     def build_ui(self):
@@ -75,7 +80,6 @@ class RevisioneScreen(Screen):
 
         content.add_widget(top)
 
-
         # ---------- IMMAGINE ----------
         image_box = MDBoxLayout(size_hint_y=None, height=dp(140))
         try:
@@ -110,25 +114,18 @@ class RevisioneScreen(Screen):
             prossima_str = rev.get("prossima", "—")
 
         # ---------- CARD ----------
-        # ---------- CARD ----------
         card = MDCard(
             orientation="vertical",
             spacing=dp(14),
             padding=dp(16),
             radius=[20, 20, 20, 20],
-
-            # Sfondo più luminoso (tipo tacho gomme)
             md_bg_color=(0.94, 0.97, 1.00, 1),
-
-            # ⭐ Bordo BLU NOTTE vero, non grigio
             line_color=(0.05, 0.1, 0.2, 1),
             line_width=dp(1.4),
-
-            elevation=0,         # niente ombra, solo contorno
+            elevation=0,
             size_hint_y=None,
         )
         card.bind(minimum_height=card.setter("height"))
-
 
         # --- Campo data immatricolazione ---
         self.field_anno = MDTextField(
@@ -186,7 +183,6 @@ class RevisioneScreen(Screen):
         self.field_anno.bind(text=self.on_imm_changed)
         self.field_ultima.bind(text=self.on_ultima_changed)
 
-
         content.add_widget(card)
 
         # ---------- BOTTONI ----------
@@ -214,7 +210,6 @@ class RevisioneScreen(Screen):
         imm = self.field_anno.text.strip()
         ultima = self.field_ultima.text.strip()
 
-        # --- Date incomplete ---
         if imm and len(imm) < 10:
             self.label_prossima.text = "[b][size=16]Prossima revisione:[/size][/b]  [size=18]—[/size]"
             self.label_regola.text = "Calcolo: —"
@@ -227,26 +222,21 @@ class RevisioneScreen(Screen):
             self.stato_revisione = "⚪"
             return
 
-        # ---------------------------------------------------------
-        # CASO 1 → ESISTE ULTIMA REVISIONE → valida solo questa
-        # ---------------------------------------------------------
+        # CASO 1: esiste ultima revisione → +2 anni
         if ultima:
             try:
                 dt = datetime.strptime(ultima, "%d/%m/%Y")
                 prox = dt.replace(year=dt.year + 2).strftime("%d/%m/%Y")
 
-                # ------ ALERT VISIVO ------
-                from datetime import datetime as dt_now, timedelta
-                oggi = dt_now.today()
+                oggi = datetime.today()
                 prox_date = datetime.strptime(prox, "%d/%m/%Y")
 
                 if prox_date < oggi:
-                    self.stato_revisione = "🔴"   # scaduta
+                    self.stato_revisione = "🔴"
                 elif prox_date <= oggi + timedelta(days=60):
-                    self.stato_revisione = "🟡"   # in scadenza
+                    self.stato_revisione = "🟡"
                 else:
-                    self.stato_revisione = "⚪"   # ok
-                # ---------------------------
+                    self.stato_revisione = "⚪"
 
                 self.label_prossima.text = (
                     f"[b][size=16]Prossima revisione:[/size][/b]  [size=18]{prox}[/size]"
@@ -256,17 +246,13 @@ class RevisioneScreen(Screen):
             except:
                 pass
 
-        # ---------------------------------------------------------
-        # CASO 2 → NON ESISTE ULTIMA → PRIMA REVISIONE (4 anni)
-        # ---------------------------------------------------------
+        # CASO 2: prima revisione → +4 anni
         if imm:
             try:
                 dt = datetime.strptime(imm, "%d/%m/%Y")
                 prox = dt.replace(year=dt.year + 4).strftime("%d/%m/%Y")
 
-                # ------ ALERT VISIVO ------
-                from datetime import datetime as dt_now, timedelta
-                oggi = dt_now.today()
+                oggi = datetime.today()
                 prox_date = datetime.strptime(prox, "%d/%m/%Y")
 
                 if prox_date < oggi:
@@ -275,7 +261,6 @@ class RevisioneScreen(Screen):
                     self.stato_revisione = "🟡"
                 else:
                     self.stato_revisione = "⚪"
-                # ---------------------------
 
                 self.label_prossima.text = (
                     f"[b][size=16]Prossima revisione:[/size][/b]  [size=18]{prox}[/size]"
@@ -285,58 +270,43 @@ class RevisioneScreen(Screen):
             except:
                 pass
 
-        # ---------------------------------------------------------
-        # Nessun dato valido
-        # ---------------------------------------------------------
         self.label_prossima.text = "[b][size=16]Prossima revisione:[/size][/b]  [size=18]—[/size]"
         self.label_regola.text = "Calcolo: —"
         self.stato_revisione = "⚪"
 
-
     def on_imm_changed(self, instance, value):
-    # Se l’utente scrive l’immatricolazione → svuota l'ultima revisione
         if value.strip():
             self.field_ultima.text = ""
         self.update_prossima()
 
-
     def on_ultima_changed(self, instance, value):
-        # Se l’utente scrive l’ultima revisione → svuota l'immatricolazione
         if value.strip():
             self.field_anno.text = ""
         self.update_prossima()
 
-
     # ---------- SALVA ----------
-      
     def salva(self):
         imm = self.field_anno.text.strip()
         ultima = self.field_ultima.text.strip() or None
 
-        # --- VALIDAZIONE: bisogna avere O immatricolazione O ultima revisione ---
         if not imm and not ultima:
             self.show_error("Inserisci una data di immatricolazione O una ultima revisione.")
             return
 
-        # Se c'è immatricolazione, deve essere valida
         if imm and not self.is_valid_date(imm):
             self.show_error("La data di immatricolazione non è valida.\nFormato richiesto: gg/mm/aaaa")
             return
 
-        # Se c'è ultima revisione, deve essere valida
         if ultima and not self.is_valid_date(ultima):
             self.show_error("La data dell'ultima revisione non è valida.\nFormato richiesto: gg/mm/aaaa")
             return
 
-        # --- CALCOLO PROSSIMA REVISIONE (senza usare la label) ---
         try:
             if ultima:
-                # Revisioni successive: ogni 2 anni
                 dt = datetime.strptime(ultima, "%d/%m/%Y")
                 prox_date = dt.replace(year=dt.year + 2)
                 self.label_regola.text = "Calcolo: revisione successiva (2 anni)"
             else:
-                # Prima revisione: 4 anni dall'immatricolazione
                 dt = datetime.strptime(imm, "%d/%m/%Y")
                 prox_date = dt.replace(year=dt.year + 4)
                 self.label_regola.text = "Calcolo: prima revisione (4 anni)"
@@ -346,46 +316,55 @@ class RevisioneScreen(Screen):
             self.show_error("Errore nel calcolo della prossima revisione.")
             return
 
-        # --- CALCOLO STATO (🔴 / 🟡 / ⚪) IN BASE A "PROSSIMA" ---
         oggi = datetime.today()
         if prox_date < oggi:
-            stato = "🔴"      # scaduta
+            stato = "🔴"
         elif prox_date <= oggi + timedelta(days=60):
-            stato = "🟡"      # in scadenza entro 60 giorni
+            stato = "🟡"
         else:
-            stato = "⚪"      # ok
+            stato = "⚪"
 
-        # Aggiorna anche la label in alto, così l'utente vede lo stesso calcolo
         self.label_prossima.text = (
             f"[b][size=16]Prossima revisione:[/size][/b]  [size=18]{prossima}[/size]"
         )
 
-        # --- SALVATAGGIO ---
+        # --- aggiorna current_auto ---
         self.current_auto["anno_imm"] = imm
         self.current_auto.setdefault("revisione", {})
         self.current_auto["revisione"]["ultima"] = ultima
         self.current_auto["revisione"]["prossima"] = prossima
 
-        # Aggiorna anche la sezione scadenze per DetailAuto
+        # --- aggiorna scadenze per DetailAuto ---
         self.current_auto.setdefault("scadenze", {})
         self.current_auto["scadenze"].setdefault("revisione", {})
-
         self.current_auto["scadenze"]["revisione"]["ultimo"] = ultima or "—"
         self.current_auto["scadenze"]["revisione"]["prossimo"] = prossima
         self.current_auto["scadenze"]["revisione"]["stato"] = stato
 
-        detail = self.manager.get_screen("detail_auto")
-        detail.save_auto_data()
+        # ✅ salva su FILE VIVO (autonomo)
+        self._save_by_index()
+
         self.go_back()
 
-    
+    # ✅ NUOVO: persist su file vivo
+    def _save_by_index(self):
+        ensure_live_file()
+        data = load_data()
+        autos = data.get("autos", [])
+
+        idx = int(getattr(self, "current_auto_index", 0))
+        if 0 <= idx < len(autos):
+            autos[idx] = self.current_auto
+            data["autos"] = autos
+            save_data(data)
+
     def is_valid_date(self, text):
         try:
             datetime.strptime(text, "%d/%m/%Y")
             return True
         except:
             return False
-    
+
     def show_error(self, msg):
         dialog = MDDialog(
             title="Errore",
@@ -397,7 +376,6 @@ class RevisioneScreen(Screen):
     def go_back(self):
         self.manager.current = "detail_auto"
 
-    # ---------- INFO POPUP ----------
     def show_info(self):
         dialog = MDDialog(
             title="Come funziona la revisione?",

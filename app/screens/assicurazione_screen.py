@@ -6,7 +6,7 @@ from kivymd.uix.button import MDRaisedButton, MDFlatButton, MDIconButton
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.selectioncontrol import MDCheckbox
-
+from app.storage.data_store import load_data, save_data, ensure_live_file
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
 from kivy.metrics import dp
@@ -469,32 +469,24 @@ class AssicurazioneScreen(MDScreen):
     # PERSISTENZA (stesso pattern di DischiFrenoScreen)
     # =========================================================
     def _save_by_index(self):
-        data_path = os.path.join("app", "data", "autos.json")
-        if not os.path.exists(data_path):
-            return
-
-        with open(data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        ensure_live_file()
+        data = load_data()
 
         idx = int(self.current_auto_index)
-        if "autos" in data and 0 <= idx < len(data["autos"]):
-            data["autos"][idx] = self.current_auto
+        autos = data.get("autos", [])
 
-        with open(data_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+        if 0 <= idx < len(autos):
+            autos[idx] = self.current_auto
+            data["autos"] = autos
+            save_data(data)
+
 
     def _save_full_fallback(self):
-        self.data_path = os.path.join("app", "data", "autos.json")
-        if not os.path.exists(self.data_path):
-            return
+        ensure_live_file()
+        data = load_data()
 
-        with open(self.data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        if "autos" not in data or not isinstance(data["autos"], list):
-            return
-
-        for a in data["autos"]:
+        autos = data.get("autos", [])
+        for a in autos:
             if (
                 a.get("marca") == self.current_auto.get("marca")
                 and a.get("modello") == self.current_auto.get("modello")
@@ -503,8 +495,9 @@ class AssicurazioneScreen(MDScreen):
                 a.update(self.current_auto)
                 break
 
-        with open(self.data_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+        data["autos"] = autos
+        save_data(data)
+
 
     # =========================================================
     # DIALOG / NAV

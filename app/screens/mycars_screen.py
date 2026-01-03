@@ -14,6 +14,8 @@ from kivy.utils import get_color_from_hex
 import json
 import os
 
+from app.storage.data_store import load_data, save_data, ensure_live_file
+
 
 BLU_NOTTE = get_color_from_hex("0D1B2A")
 AZZURRO = get_color_from_hex("3A6EA5")  # blu più chiaro per Aggiorna KM
@@ -25,7 +27,7 @@ class MyCarsScreen(MDScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.data_path = "app/data/autos.json"
+        # self.data_path = "app/data/autos.json"  # DEPRECATO: il seed non si riscrive, usa data_store (file vivo)
 
         # ---------- TOP BAR ----------
         top_bar = MDTopAppBar(
@@ -110,14 +112,8 @@ class MyCarsScreen(MDScreen):
     def load_autos(self):
         self.list_box.clear_widgets()
 
-        if not os.path.exists(self.data_path):
-            os.makedirs(os.path.dirname(self.data_path), exist_ok=True)
-            with open(self.data_path, "w", encoding="utf-8") as f:
-                json.dump({"autos": []}, f, indent=4)
-
-        with open(self.data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
+        ensure_live_file()
+        data = load_data()
         autos = data.get("autos", [])
         self.btn_add.disabled = False   # PRO mode
 
@@ -353,14 +349,13 @@ class MyCarsScreen(MDScreen):
         self.dialog_delete.open()
 
     def delete_auto(self, auto):
-        with open(self.data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
+        data = load_data()
         autos = data.get("autos", [])
-        autos.remove(auto)
 
-        with open(self.data_path, "w", encoding="utf-8") as f:
-            json.dump({"autos": autos}, f, indent=4)
+        if auto in autos:
+            autos.remove(auto)
+
+        save_data({"autos": autos})
 
         self.dialog_delete.dismiss()
         self.load_autos()
@@ -398,20 +393,17 @@ class MyCarsScreen(MDScreen):
 
         new_km = int(new_km)
 
-        with open(self.data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        data = load_data()
 
         # aggiorna solo il primo (poi lo correggiamo per auto specifica)
-        if data["autos"]:
+        if data.get("autos"):
             data["autos"][0]["km"] = new_km
 
-        with open(self.data_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+        save_data(data)
 
         self.dialog_update.dismiss()
         self.load_autos()
-    
-    def open_edit_popup(self, auto, index):
+def open_edit_popup(self, auto, index):
         from kivymd.uix.dialog import MDDialog
         from kivymd.uix.textfield import MDTextField
 
@@ -451,18 +443,16 @@ class MyCarsScreen(MDScreen):
         )
         self.dialog_edit.open()
 
-    def save_edit_name(self):
+def save_edit_name(self):
         new_marca = self.edit_marca.text.strip()
         new_modello = self.edit_modello.text.strip()
 
-        with open(self.data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        data = load_data()
 
         data["autos"][self.edit_index]["marca"] = new_marca
         data["autos"][self.edit_index]["modello"] = new_modello
 
-        with open(self.data_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+        save_data(data)
 
         self.dialog_edit.dismiss()
         self.load_autos()

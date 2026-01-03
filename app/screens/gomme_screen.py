@@ -5,7 +5,7 @@ from kivymd.uix.textfield import MDTextField
 from kivymd.uix.button import MDRaisedButton, MDIconButton
 from kivymd.uix.scrollview import MDScrollView
 from kivymd.uix.dialog import MDDialog
-
+from app.storage.data_store import load_data, save_data, ensure_live_file
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.image import Image
 from kivy.metrics import dp
@@ -34,7 +34,7 @@ class GommeScreen(MDScreen):
     - T1 = USATO, T2 = DI RISERVA (solo label)
     """
 
-    data_path = "app/data/autos.json"
+    
 
     # =========================================================
     # CICLO DI VITA
@@ -437,15 +437,17 @@ class GommeScreen(MDScreen):
         }
 
         # salvataggio per indice (coerente col resto)
-        data_path = os.path.join("app", "data", "autos.json")
-        with open(data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+# ✅ salvataggio su FILE VIVO (data_store)
+        ensure_live_file()
+        data = load_data()
 
-        idx = self.current_auto_index
-        data["autos"][idx] = auto
+        idx = int(self.current_auto_index)
+        autos = data.get("autos", [])
+        if 0 <= idx < len(autos):
+            autos[idx] = auto
+            data["autos"] = autos
+            save_data(data)
 
-        with open(data_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
 
         self.manager.current = "detail_auto"
 
@@ -453,11 +455,8 @@ class GommeScreen(MDScreen):
     # PERSISTENZA
     # =========================================================
     def _save_full(self):
-        if not os.path.exists(self.data_path):
-            return
-
-        with open(self.data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        ensure_live_file()
+        data = load_data()
 
         autos = data.get("autos", [])
         for a in autos:
@@ -469,8 +468,8 @@ class GommeScreen(MDScreen):
                 a.update(self.current_auto)
                 break
 
-        with open(self.data_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+        data["autos"] = autos
+        save_data(data)
 
     # =========================================================
     # UTILITY

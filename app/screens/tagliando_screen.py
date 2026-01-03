@@ -12,8 +12,10 @@ from kivy.uix.image import Image
 from kivy.metrics import dp
 from kivy.utils import get_color_from_hex
 
-import json
-import os
+import os  # lo lasciamo, non dà fastidio
+
+# ✅ NUOVO: runtime storage (file VIVO)
+from app.storage.data_store import load_data, save_data, ensure_live_file
 
 
 BLU = get_color_from_hex("0D1B2A")
@@ -27,8 +29,7 @@ class TagliandoScreen(MDScreen):
     Lo stato NON viene mostrato qui: viene salvato in scadenze per DetailAuto.
     """
 
-    data_path = "app/data/autos.json"
-
+   
     # =========================================================
     # CICLO DI VITA
     # =========================================================
@@ -324,7 +325,7 @@ class TagliandoScreen(MDScreen):
             "stato": stato
         }
 
-        # ---- persist autos.json ----
+        # ---- persist autos.json (FILE VIVO) ----
         if hasattr(self, "current_auto_index"):
             self._save_by_index()
         else:
@@ -332,27 +333,22 @@ class TagliandoScreen(MDScreen):
 
         self._go_back()
 
+    # ✅ MODIFICATO: salva sul file VIVO, non sul seed
     def _save_by_index(self):
-        data_path = os.path.join("app", "data", "autos.json")
-        if not os.path.exists(data_path):
-            return
-
-        with open(data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        ensure_live_file()
+        data = load_data()
 
         idx = int(self.current_auto_index)
-        if "autos" in data and 0 <= idx < len(data["autos"]):
-            data["autos"][idx] = self.current_auto
+        autos = data.get("autos", [])
+        if 0 <= idx < len(autos):
+            autos[idx] = self.current_auto
+            data["autos"] = autos
+            save_data(data)
 
-        with open(data_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
-
+    # ✅ MODIFICATO: salva sul file VIVO, non sul seed
     def _save_full_fallback(self):
-        if not os.path.exists(self.data_path):
-            return
-
-        with open(self.data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        ensure_live_file()
+        data = load_data()
 
         autos = data.get("autos", [])
         for a in autos:
@@ -364,8 +360,8 @@ class TagliandoScreen(MDScreen):
                 a.update(self.current_auto)
                 break
 
-        with open(self.data_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4, ensure_ascii=False)
+        data["autos"] = autos
+        save_data(data)
 
     # =========================================================
     # DIALOG / NAV
