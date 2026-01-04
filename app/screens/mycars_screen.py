@@ -11,10 +11,7 @@ from kivy.uix.image import Image
 from kivy.metrics import dp
 from kivy.utils import get_color_from_hex
 from app.storage.license import max_cars
-
-
-import json
-import os
+from kivy.uix.widget import Widget as MDWidget
 
 from app.storage.data_store import load_data, save_data, ensure_live_file
 
@@ -333,19 +330,91 @@ class MyCarsScreen(MDScreen):
 
         limit = max_cars()
         if len(autos) >= limit:
-            # popup elegante (MDDialog) - tu qui ce l'hai già e funziona
+
+            content = MDBoxLayout(
+                orientation="vertical",
+                spacing=dp(12),
+                padding=(dp(12), dp(8)),
+                size_hint_y=None,
+            )
+            content.bind(minimum_height=content.setter("height"))
+
+            content.add_widget(
+                MDLabel(
+                    text=(
+                        "Nella versione gratuita puoi gestire 1 sola auto.\n"
+                        "Con PRO puoi gestire fino a 10 auto.\n\n"
+                        "Se hai già acquistato PRO, ripristina l’acquisto."
+                    ),
+                    theme_text_color="Secondary",
+                    size_hint_y=None,
+                    height=dp(90),
+                )
+            )
+
+            # --- dopo la MDLabel del testo ---
+            content.add_widget(MDWidget(size_hint_y=None, height=dp(8)))  # ✅ scarto tra testo e bottoni
+
+            content.add_widget(
+                MDRaisedButton(
+                    text="SBLOCCA PRO",
+                    md_bg_color=(1.0, 0.55, 0.0, 1),  # arancione
+                    text_color=(1, 1, 1, 1),
+                    size_hint=(1, None),
+                    height=dp(44),
+                    on_release=lambda x: self.unlock_pro_dev(),
+                )
+            )
+
+            content.add_widget(
+                MDRaisedButton(
+                    text="RIPRISTINA ACQUISTO",
+                    md_bg_color=(0.55, 0.25, 0.70, 1),  # purple
+                    text_color=(1, 1, 1, 1),
+                    size_hint=(1, None),
+                    height=dp(44),
+                    on_release=lambda x: self.restore_purchase_dev(),
+                )
+            )
+
+            content.add_widget(
+                MDFlatButton(
+                    text="ANNULLA",
+                    theme_text_color="Custom",
+                    text_color=AZZURRO,               # se AZZURRO è già definito nel progetto
+                    size_hint=(1, None),
+                    height=dp(44),
+                    on_release=lambda x: self.dialog_limit.dismiss(),
+                )
+            )
+
             self.dialog_limit = MDDialog(
-                title="Solo versione PRO",
-                text="Nella versione FREE puoi gestire 1 sola auto.\nSblocca PRO per arrivare a 10.",
-                buttons=[
-                    MDFlatButton(text="OK", on_release=lambda x: self.dialog_limit.dismiss()),
-                ],
+                title="Sblocca EasyCar PRO",
+                type="custom",
+                content_cls=content,
             )
             self.dialog_limit.open()
             return
 
-        # ok → vai allo screen add_auto
+
         self.manager.current = "add_auto"
+
+    def unlock_pro_dev(self):
+        from app.storage.license import set_pro
+
+        set_pro(True)  # scrive su license.json
+        self.dialog_limit.dismiss()
+        self.manager.current = "add_auto"
+
+
+    def restore_purchase_dev(self):
+        from app.storage.license import set_pro
+
+        set_pro(True)  # DEV: simula ripristino
+        self.dialog_limit.dismiss()
+        self.manager.current = "add_auto"
+
+
 
 
     # ---------- OPEN DETAIL ----------
@@ -373,6 +442,7 @@ class MyCarsScreen(MDScreen):
         self.dialog_delete.open()
 
     def delete_auto(self, auto):
+        ensure_live_file()
         data = load_data()
         autos = data.get("autos", [])
 
@@ -409,6 +479,7 @@ class MyCarsScreen(MDScreen):
         self.dialog_update.open()
 
     def save_new_km(self):
+        ensure_live_file()
         new_km = self.km_field.text.strip()
 
         if not new_km.isdigit():
@@ -468,6 +539,7 @@ def open_edit_popup(self, auto, index):
         self.dialog_edit.open()
 
 def save_edit_name(self):
+        ensure_live_file()
         new_marca = self.edit_marca.text.strip()
         new_modello = self.edit_modello.text.strip()
 

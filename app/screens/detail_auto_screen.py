@@ -293,7 +293,7 @@ class DetailAutoScreen(MDScreen):
             theme_text_color="Custom",
             text_color=BLU_NOTTE
         ))
-
+        col.add_widget(MDBoxLayout(size_hint_y=None, height=dp(4)))
         # --- CONTENUTO SPECIFICO PER GOMME O ALTRO ---
         if key == "gomme":
             treno = sc.get("treno", "—")
