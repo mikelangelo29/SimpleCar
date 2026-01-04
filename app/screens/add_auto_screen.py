@@ -8,12 +8,19 @@ from kivymd.uix.anchorlayout import MDAnchorLayout
 from kivy.metrics import dp
 from kivy.utils import get_color_from_hex
 from kivymd.app import MDApp
+from kivymd.app import MDApp
+from kivymd.toast import toast
+
+
+from app.storage.data_store import ensure_live_file, load_data, save_data
+from app.storage.license import max_cars
+
 
 import json
 import os
 
 BLU_NOTTE = get_color_from_hex("0D1B2A")  # colore uniforme di EasyAuto
-
+BORDER_BLU = (0.12, 0.25, 0.45, 1)
 
 class AddAutoScreen(MDScreen):
     def __init__(self, **kwargs):
@@ -29,9 +36,17 @@ class AddAutoScreen(MDScreen):
             spacing=dp(18),
             size_hint=(0.88, None),
             height=dp(540),
-            elevation=6,
+            elevation=0,                 # ✅ niente ombra
+            style="outlined",            # ✅ bordo
+            line_color=BORDER_BLU,
+            line_width=1.4,
+
             md_bg_color=(1, 1, 1, 1)
+
         )
+
+                # ---------- IMMAGINE TACHIMETRO ----------
+      
 
         # ---------- TITOLO + BACK ----------
         header = MDBoxLayout(
@@ -44,7 +59,8 @@ class AddAutoScreen(MDScreen):
         back_btn = MDIconButton(
             icon="arrow-left",
             icon_size=dp(28),
-            on_release=lambda x: setattr(self.manager, "current", "mycars")
+            on_release=lambda x: self.go_back()
+
         )
 
         title = MDLabel(
@@ -59,6 +75,9 @@ class AddAutoScreen(MDScreen):
         header.add_widget(MDLabel(size_hint=(0.3, 1)))  # bilanciamento
 
         card.add_widget(header)
+
+
+
 
         # ---------- CAMPI ----------
         self.marca = MDTextField(
@@ -138,33 +157,36 @@ class AddAutoScreen(MDScreen):
         km_ok = bool(self.km.text.strip())
         self.btn_save.disabled = not (modello_ok and km_ok)
 
+    def reset_fields(self):
+        self.marca.text = ""
+        self.modello.text = ""
+        self.targa.text = ""
+        self.km.text = ""
+        self.anno.text = ""
+        self.btn_save.disabled = True
+
+    def go_back(self):
+        self.reset_fields()
+        self.manager.current = "mycars"
+
+
+
     # ------------ SALVATAGGIO AUTO (VERSIONE PRO + COLORI) ------------
+
     def save_auto(self, *args):
-        data_path = "app/data/autos.json"
-
-        # Se il file non esiste → crealo
-        if not os.path.exists(data_path):
-            os.makedirs(os.path.dirname(data_path), exist_ok=True)
-            with open(data_path, "w", encoding="utf-8") as f:
-                json.dump({"autos": []}, f, indent=4)
-
-        # Carica autos.json
-        with open(data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
+        ensure_live_file()
+        data = load_data()
         autos = data.get("autos", [])
 
-        # --- Modalità PRO attiva (rimosso limite FREE) ---
-        # if len(autos) >= 1:
-        #     return
+        limit = max_cars()
+        if len(autos) >= limit:
+            toast("FREE: 1 auto. Sblocca PRO per arrivare a 10.")
+            return
 
         # --- Assegna colore tachimetro automaticamente ---
-        
         app = MDApp.get_running_app()
-        auto_color = app.genera_colore_tachimetro()
+        auto_color = app.genera_colore_tachimetro(len(autos))
 
-
-        # --- Crea nuovo dizionario auto ---
         new_auto = {
             "marca": self.marca.text.strip(),
             "modello": self.modello.text.strip(),
@@ -172,14 +194,12 @@ class AddAutoScreen(MDScreen):
             "km": int(self.km.text.strip()),
             "anno": self.anno.text.strip(),
             "scadenze": {},
-            "tacho_color": auto_color   # ← QUI VIENE SALVATO IL COLORE
+            "tacho_color": auto_color
         }
 
         autos.append(new_auto)
+        data["autos"] = autos
+        save_data(data)
 
-        # Salva su file
-        with open(data_path, "w", encoding="utf-8") as f:
-            json.dump({"autos": autos}, f, indent=4)
-
-        # Torna allo screen “mycars”
+        self.reset_fields()
         self.manager.current = "mycars"

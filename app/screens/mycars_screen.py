@@ -10,6 +10,8 @@ from kivymd.uix.scrollview import MDScrollView
 from kivy.uix.image import Image
 from kivy.metrics import dp
 from kivy.utils import get_color_from_hex
+from app.storage.license import max_cars
+
 
 import json
 import os
@@ -62,7 +64,7 @@ class MyCarsScreen(MDScreen):
             size_hint=(1, None),
             height=dp(50),
             elevation=0,
-            on_release=lambda x: setattr(self.manager, "current", "add_auto")
+            on_release=lambda x: self.try_open_add_auto()
         )
         self.scroll_box.add_widget(self.btn_add)
 
@@ -114,8 +116,8 @@ class MyCarsScreen(MDScreen):
 
         ensure_live_file()
         data = load_data()
-        autos = data.get("autos", [])
-        self.btn_add.disabled = False   # PRO mode
+        autos = data.get("autos", [])   
+
 
         # ---------- NESSUNA AUTO ----------
         if len(autos) == 0:
@@ -323,6 +325,28 @@ class MyCarsScreen(MDScreen):
 
             # ---------- SPACER PER LO SCROLL ----------
             self.list_box.add_widget(MDWidget(size_hint_y=None, height=dp(18)))
+
+    def try_open_add_auto(self):
+        ensure_live_file()
+        data = load_data()
+        autos = data.get("autos", [])
+
+        limit = max_cars()
+        if len(autos) >= limit:
+            # popup elegante (MDDialog) - tu qui ce l'hai già e funziona
+            self.dialog_limit = MDDialog(
+                title="Solo versione PRO",
+                text="Nella versione FREE puoi gestire 1 sola auto.\nSblocca PRO per arrivare a 10.",
+                buttons=[
+                    MDFlatButton(text="OK", on_release=lambda x: self.dialog_limit.dismiss()),
+                ],
+            )
+            self.dialog_limit.open()
+            return
+
+        # ok → vai allo screen add_auto
+        self.manager.current = "add_auto"
+
 
     # ---------- OPEN DETAIL ----------
     def open_detail(self, index):

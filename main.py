@@ -47,24 +47,17 @@ class SimpleCarApp(MDApp):
 
     autos_file = "app/data/autos.json"
 
-    def genera_colore_tachimetro(self):
-        import random
+    def genera_colore_tachimetro(self, index: int) -> str:
+        colors = [
+            "purple",
+            "blue",
+            "green",
+            "orange",
+            "red",
+            "yellow",
+        ]
+        return colors[index % len(colors)]
 
-        colors = ["blue", "red", "green", "yellow", "orange", "purple"]
-
-        autos = self.load_autos() or []
-
-        # Se nessuna auto esiste → random totale (prima auto della Premium)
-        if not autos:
-            return random.choice(colors)
-
-        # Colore dell’ultima auto
-        last_color = autos[-1].get("tacho_color")
-
-        # Escludi il colore precedente
-        available = [c for c in colors if c != last_color]
-
-        return random.choice(available)
 
 
     def build(self):
