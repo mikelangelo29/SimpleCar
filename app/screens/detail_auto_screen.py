@@ -14,6 +14,15 @@ import os
 # ✅ NUOVO: usa il data_store (file VIVO)
 from app.storage.data_store import load_data, save_data
 
+# ✅ NUOVO: licenza PRO/FREE
+from app.storage.license import is_pro, set_pro
+from kivy.clock import Clock
+from kivymd.uix.button import MDFlatButton
+
+# ✅ Screen disponibili in FREE
+FREE_SCREENS = {"tagliando", "revisione", "assicurazione", "bollo"}
+
+
 
 # ------------------------- PALETTE -------------------------
 BLU_NOTTE = get_color_from_hex("0D1B2A")
@@ -384,6 +393,11 @@ class DetailAutoScreen(MDScreen):
     # ---------------------------------------------------------
     def open_item(self, key):
         print("OPEN_ITEM:", key)
+        # ✅ Gate FREE/PRO: in FREE si aprono solo alcune schede
+        if (not is_pro()) and key not in FREE_SCREENS:
+            self.open_pro_dialog(blocked_key=key)
+            return
+
         if key == "gomme":
             gs = self.manager.get_screen("gomme")
             gs.current_auto = self.auto
@@ -443,6 +457,49 @@ class DetailAutoScreen(MDScreen):
             b.current_auto = self.auto
             b.current_auto_index = self.selected_index
             self.manager.current = "bollo"
+    # ---------------------------------------------------------
+    # PRO: dialog di upsell (gate schede)
+    # ---------------------------------------------------------
+    def open_pro_dialog(self, blocked_key: str = ""):
+        from kivymd.uix.dialog import MDDialog
+        # Messaggio chiaro e minimale (niente prezzo: lo gestisce lo store)
+        msg = (
+            "Questa scheda è disponibile solo in versione PRO.\n\n"
+            "In FREE puoi usare: Tagliando, Revisione, Assicurazione e Bollo.\n\n"
+            "Sblocca PRO per tutte le schede e per gestire più auto."
+        )
+
+        # Evita dialog doppi
+        if getattr(self, "_pro_dialog", None):
+            try:
+                self._pro_dialog.dismiss()
+            except Exception:
+                pass
+
+        def _do_unlock(*_):
+            try:
+                set_pro(True)
+            except Exception:
+                pass
+            try:
+                self._pro_dialog.dismiss()
+            except Exception:
+                pass
+
+            # Dopo l'attivazione PRO, prova ad aprire subito la scheda richiesta
+            if blocked_key:
+                Clock.schedule_once(lambda dt: self.open_item(blocked_key), 0.05)
+
+        self._pro_dialog = MDDialog(
+            title="Funzione PRO",
+            text=msg,
+            buttons=[
+                MDFlatButton(text="ANNULLA", on_release=lambda x: self._pro_dialog.dismiss()),
+                MDFlatButton(text="SBLOCCA PRO", on_release=_do_unlock),
+            ],
+        )
+        self._pro_dialog.open()
+
 
     def update_view(self):
         self.on_pre_enter()
