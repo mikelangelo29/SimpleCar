@@ -498,7 +498,7 @@ class MyCarsScreen(MDScreen):
 
         self.dialog_update.dismiss()
         self.load_autos()
-def open_edit_popup(self, auto, index):
+    def open_edit_popup(self, auto, index):
         from kivymd.uix.dialog import MDDialog
         from kivymd.uix.textfield import MDTextField
 
@@ -538,7 +538,7 @@ def open_edit_popup(self, auto, index):
         )
         self.dialog_edit.open()
 
-def save_edit_name(self):
+    def save_edit_name(self):
         ensure_live_file()
         new_marca = self.edit_marca.text.strip()
         new_modello = self.edit_modello.text.strip()

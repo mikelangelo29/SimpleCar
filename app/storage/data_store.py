@@ -51,23 +51,42 @@ def ensure_live_file() -> Path:
 
 def load_data() -> dict:
     """
-    Legge SEMPRE dal file VIVO.
+    Legge il file VIVO. Se è corrotto, lo rinomina e riparte da seed/base.
     """
     lp = ensure_live_file()
     try:
         with open(lp, "r", encoding="utf-8") as f:
             return json.load(f) or {"autos": []}
     except Exception:
+        # File corrotto/non leggibile: lo metto da parte per ispezione
+        try:
+            bad = lp.with_suffix(".bad.json")
+            if bad.exists():
+                bad.unlink()
+            lp.replace(bad)
+        except Exception:
+            pass
+
+        # Rigenera file valido
+        ensure_live_file()
         return {"autos": []}
+
 
 
 def save_data(data: dict) -> None:
     """
-    Scrive SEMPRE sul file VIVO.
+    Scrive SEMPRE sul file VIVO in modo atomico (anti-corruzione su Android/MIUI).
     """
     lp = ensure_live_file()
-    with open(lp, "w", encoding="utf-8") as f:
+    tmp = lp.with_suffix(".tmp")
+
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
+        f.flush()
+        os.fsync(f.fileno())
+
+    tmp.replace(lp)
+
 
 
 def load_autos_list() -> list:

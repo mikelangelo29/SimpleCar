@@ -37,7 +37,7 @@ class OnboardingTachimetroScreen(MDScreen):
             return
 
         # Navigazione temporanea verso MyCars
-        self.manager.current = "autos"
+        self.manager.current = "mycars"
 
     def crea_auto_e_apri_mycars(self):
         app = MDApp.get_running_app()
