@@ -113,8 +113,15 @@ class MyCarsScreen(MDScreen):
 
         ensure_live_file()
         data = load_data()
-        autos = data.get("autos", [])   
 
+        # ✅ INTERI: difese su struttura dati (Android può restituire roba sporca)
+        if not isinstance(data, dict):
+            data = {"autos": []}
+
+        autos = data.get("autos", [])
+
+        if not isinstance(autos, list):
+            autos = []
 
         # ---------- NESSUNA AUTO ----------
         if len(autos) == 0:
@@ -152,7 +159,14 @@ class MyCarsScreen(MDScreen):
 
             marca = auto.get("marca", "")
             modello = auto.get("modello", "")
-            km = auto.get("km", 0)
+
+            # ✅ INTERI: km sempre convertito a int (Android spesso salva stringhe)
+            raw_km = auto.get("km", 0)
+            try:
+                km = int(raw_km)
+            except (TypeError, ValueError):
+                km = 0
+
             titolo = " ".join([x for x in [marca, modello] if x.strip()])
 
             color = auto.get("tacho_color", "purple")  # prima auto purple
@@ -184,13 +198,12 @@ class MyCarsScreen(MDScreen):
 
             title_label = MDLabel(
                 text=titolo.upper(),
-                font_style="H5",              # 🔥 più grande e più evidente
+                font_style="H5",
                 halign="left",
                 valign="middle",
-                bold=True,                    # 🔥 peso visivo maggiorato
+                bold=True,
                 theme_text_color="Custom",
                 text_color=BLU_NOTTE,
-
             )
 
             details_icon = MDIcon(
@@ -207,7 +220,6 @@ class MyCarsScreen(MDScreen):
                 return lambda w, t: self.open_detail(index) if w.collide_point(t.x, t.y) else False
 
             header_box.bind(on_touch_down=make_callback(i))
-
 
             card.add_widget(header_box)
 
@@ -261,7 +273,6 @@ class MyCarsScreen(MDScreen):
             card.add_widget(MDWidget(size_hint_y=None, height=dp(12)))
 
             # ---------- BOTTONI ----------
-            # ---------- BOTTONI ----------
             buttons = MDBoxLayout(
                 orientation="vertical",
                 spacing=dp(10),
@@ -269,7 +280,6 @@ class MyCarsScreen(MDScreen):
                 height=dp(150),
             )
 
-            # --- Pulsante principale a tutta larghezza ---
             update_btn = MDRaisedButton(
                 text="Aggiorna KM",
                 md_bg_color=AZZURRO,
@@ -277,12 +287,12 @@ class MyCarsScreen(MDScreen):
                 elevation=0,
                 size_hint=(1, None),
                 height=dp(45),
-                on_release=lambda x, auto=auto: self.open_update_km_dialog(auto["km"]),
+                # ✅ INTERI: niente KeyError + passa valore robusto
+                on_release=lambda x, auto=auto: self.open_update_km_dialog(auto.get("km", 0)),
             )
 
             buttons.add_widget(update_btn)
 
-            # --- Seconda riga: Modifica + Elimina ---
             second_row = MDBoxLayout(
                 orientation="horizontal",
                 spacing=dp(10),
@@ -301,7 +311,7 @@ class MyCarsScreen(MDScreen):
 
             delete_btn = MDRaisedButton(
                 text="Elimina Auto",
-                md_bg_color=(0.80, 0.18, 0.23, 1),    # Rosso Instagram
+                md_bg_color=(0.80, 0.18, 0.23, 1),
                 text_color=(1, 1, 1, 1),
                 elevation=0,
                 ripple_color=(0.8, 0, 0.1, 1),
@@ -316,11 +326,7 @@ class MyCarsScreen(MDScreen):
 
             card.add_widget(buttons)
 
-
-            # ---------- ADD CARD ----------
             self.list_box.add_widget(card)
-
-            # ---------- SPACER PER LO SCROLL ----------
             self.list_box.add_widget(MDWidget(size_hint_y=None, height=dp(18)))
 
     def try_open_add_auto(self):
