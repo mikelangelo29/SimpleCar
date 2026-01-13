@@ -182,9 +182,6 @@ class MyCarsScreen(MDScreen):
                 shadow_offset=(0, 0),
                 size_hint=(1, None),
                 height=dp(360),
-                style="outlined",
-                line_color=BLU_NOTTE,
-                line_width=1.4,
             )
 
             # ---------- HEADER ----------
@@ -201,7 +198,6 @@ class MyCarsScreen(MDScreen):
                 font_style="H5",
                 halign="left",
                 valign="middle",
-                bold=True,
                 theme_text_color="Custom",
                 text_color=BLU_NOTTE,
             )
